@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 3.8)
-enable_testing()
 
 file(GLOB_RECURSE source_files "*.cpp")
+# to avoid link error in clang
+add_definitions(-DBOOST_TEST_DYN_LINK)
 add_executable (minimal_serializer_cpp_test ${source_files})
 
 # Boost Library
@@ -17,6 +18,4 @@ target_link_libraries(minimal_serializer_cpp_test minimal_serializer_cpp)
 add_test(
   NAME minimal_serializer_cpp_test
   COMMAND $<TARGET_FILE:minimal_serializer_cpp_test>
-#  CONFIGURATIONS Release
-  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
 )

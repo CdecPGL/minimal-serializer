@@ -1,0 +1,43 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/workspace
+    docker:
+      - image: cdec/minimal-serialzier:dev-alpine
+    steps:
+      - checkout
+      - run:
+        name: Make build directory
+        command: mkdir build && cd build
+      - run:
+        name: Create build files
+        command: cmake .. -DCMAKE_CXX_COMPILER=clang++
+      - run:
+        name: Build binaries
+        command: make
+      - persist_to_workspace:
+        root: "."
+        paths:
+          - "build"
+  test:
+    working_directory: ~/workspace
+    docker:
+      - image: cdec/minimal-serialzier:dev-alpine
+    steps:
+      - attach_workspace:
+          at: "build"
+      - run:
+        name: Execute unit tests
+        command: ctest
+
+workflows:
+  version: 2.1
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
