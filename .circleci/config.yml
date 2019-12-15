@@ -1,56 +1,108 @@
-version: 2
-jobs:
-  build:
+version: 2.1
+
+executors:
+  default:
     working_directory: ~/workspace
     docker:
       - image: cdec/minimal-serializer:dev-alpine
+
+commands:
+  build:
+    parameters:
+      id:
+        type: string
+      compiler:
+        type: string
     steps:
       - checkout
       - run:
           name: Make build directory
-          command: mkdir build
+          command: mkdir build_<< parameters.id >>
       - run:
           name: Create build files
-          working_directory: build
-          command: cmake .. -DCMAKE_CXX_COMPILER=clang++
+          working_directory: build_<< parameters.id >>
+          command: cmake .. -DCMAKE_CXX_COMPILER=<< parameters.compiler >>
       - run:
           name: Build binaries
-          working_directory: build
+          working_directory: build_<< parameters.id >>
           command: make
       - persist_to_workspace:
           root: "."
           paths:
-            - "build"
+            - "build_<< parameters.id >>"
+
   test:
-    working_directory: ~/workspace
-    docker:
-      - image: cdec/minimal-serializer:dev-alpine
+    parameters:
+      id:
+        type: string
     steps:
       - attach_workspace:
           at: "."
       - run:
           name: Execute unit tests
-          working_directory: build
-          command: BOOST_TEST_LOGGER="JUNIT,,minimal_serializer_cpp_test_log.xml" ctest
+          working_directory: build_<< parameters.id >>
+          command: BOOST_TEST_LOGGER="JUNIT,,minimal_serializer_cpp_test_<< parameters.id >>_log.xml" ctest
       - run:
           name: Copy test log
           command: |
             mkdir -p ~/test-results/junit/
-            cp build/minimal_serializer_cpp_test/minimal_serializer_cpp_test_log.xml ~/test-results/junit/
+            cp build_<< parameters.id >>/minimal_serializer_cpp_test/minimal_serializer_cpp_test_<< parameters.id >>_log.xml ~/test-results/junit/
           when: always
       - store_test_results:
           path: ~/test-results
       - store_artifacts:
-          path: ~/test-results/junit 
+          path: ~/test-results/junit
+
+jobs:
+  build_gpp:
+    executor: default
+    steps:
+      - build:
+          id: gpp
+          compiler: g++
+
+  build_clang:
+    executor: default
+    steps:
+      - build:
+          id: clang
+          compiler: clang++
+
+  test_gpp:
+    executor: default
+    steps:
+      - test:
+          id: gpp
+
+  test_clang:
+    executor: default
+    steps:
+      - test:
+          id: clang
 
 workflows:
-  version: 2
   build_and_test:
     jobs:
-      - build
-      - test:
+      - build_gpp:
+          filters:
+            branches:
+              only: master
+
+      - build_clang:
+          filters:
+            branches:
+              only: master
+
+      - test_gpp:
           requires:
-            - build
+            - build_gpp
+          filters:
+            branches:
+              only: master
+
+      - test_clang:
+          requires:
+            - build_clang
           filters:
             branches:
               only: master
