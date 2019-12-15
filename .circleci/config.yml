@@ -1,37 +1,50 @@
-version: 2.1
+version: 2
 jobs:
   build:
     working_directory: ~/workspace
     docker:
-      - image: cdec/minimal-serialzier:dev-alpine
+      - image: cdec/minimal-serializer:dev-alpine
     steps:
       - checkout
       - run:
-        name: Make build directory
-        command: mkdir build && cd build
+          name: Make build directory
+          command: mkdir build
       - run:
-        name: Create build files
-        command: cmake .. -DCMAKE_CXX_COMPILER=clang++
+          name: Create build files
+          working_directory: build
+          command: cmake .. -DCMAKE_CXX_COMPILER=clang++
       - run:
-        name: Build binaries
-        command: make
+          name: Build binaries
+          working_directory: build
+          command: make
       - persist_to_workspace:
-        root: "."
-        paths:
-          - "build"
+          root: "."
+          paths:
+            - "build"
   test:
     working_directory: ~/workspace
     docker:
-      - image: cdec/minimal-serialzier:dev-alpine
+      - image: cdec/minimal-serializer:dev-alpine
     steps:
       - attach_workspace:
-          at: "build"
+          at: "."
       - run:
-        name: Execute unit tests
-        command: ctest
+          name: Execute unit tests
+          working_directory: build
+          command: BOOST_TEST_LOGGER="JUNIT,,minimal_serializer_cpp_test_log.xml" ctest
+      - run:
+          name: Copy test log
+          command: |
+            mkdir -p ~/test-results/junit/
+            cp build/minimal_serializer_cpp_test/minimal_serializer_cpp_test_log.xml ~/test-results/junit/
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit 
 
 workflows:
-  version: 2.1
+  version: 2
   build_and_test:
     jobs:
       - build
