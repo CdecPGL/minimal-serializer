@@ -90,7 +90,24 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 
 	BOOST_AUTO_TEST_CASE(test_at_out_of_range) {
 		const pgl::fixed_string<4> test(u8"abcd");
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4834)
+#elif __GNUC__
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wunused-result"
+#elif __clang__
+#pragma CLANG diagnostic push 
+#pragma CLANG diagnostic ignored "-Wunused-result"
+#endif
 		BOOST_CHECK_EXCEPTION(test.at(4), std::out_of_range, [](auto) {return true; });
+#ifdef _MSC_VER
+#pragma warning(pop)
+#elif __GNUC__
+#pragma GCC diagnostic pop
+#elif __clang__
+#pragma CLANG diagnostic pop
+#endif
 	}
 
 	BOOST_AUTO_TEST_CASE(test_less_than_operator_true) {
