@@ -1,3 +1,6 @@
+[![License](https://img.shields.io/github/license/CdecPGL/minimal-serializer)](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE)
+[![CircleCI Buld and Test Status](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master.svg?style=shield)](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master)
+
 # minimal-serializer
 
 A C++ and C# binary serializer which serializes data without any extra data.
@@ -47,3 +50,7 @@ minimal-serializer for C#.
 ### Install
 
 Copy all files in `MinimalSerializerCSharp/Source` directory to your project.
+
+## License
+
+The codes in this repository are lisenced unfer the [MIT License](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE).
