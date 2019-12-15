@@ -17,10 +17,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "nameof.hpp"
 
 namespace pgl {
+	// return true if generating string from enum type is supported. If this value is false, enum type values are treated as its underlying type values. This depends on nameof C++.
+	constexpr bool is_generate_enum_string_supported = nameof::is_nameof_enum_supported;
+
 	// Enable enum values to output by ostream
 	template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>, int> = 0>
-	std::ostream & operator <<(std::ostream & os, const Enum & enum_value) {
-		os << nameof::nameof_enum(enum_value);
+	std::ostream& operator <<(std::ostream& os, const Enum& enum_value) {
+		if constexpr (is_generate_enum_string_supported) {
+			os << nameof::nameof_enum(enum_value);
+		} else {
+			os << static_cast<std::underlying_type_t<Enum>>(enum_value);
+		}
 		return os;
 	}
 
