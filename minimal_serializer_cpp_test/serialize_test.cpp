@@ -23,7 +23,7 @@ struct simple_struct_member_serialize final {
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
 
-	void on_serialize(pgl::serializer& serializer) {
+	void on_serialize(minimal_serializer::serializer& serializer) {
 		serializer += value1;
 		serializer += value2;
 	}
@@ -61,8 +61,8 @@ struct simple_struct_global_serialize final {
 	}
 };
 
-namespace pgl {
-	void on_serialize(simple_struct_global_serialize& data, pgl::serializer& serializer) {
+namespace minimal_serializer {
+	void on_serialize(simple_struct_global_serialize& data, minimal_serializer::serializer& serializer) {
 		serializer += data.value1;
 		serializer += data.value2;
 	}
@@ -79,7 +79,7 @@ struct nested_struct final {
 	simple_struct_member_serialize value5;
 	simple_struct_global_serialize value6;
 
-	void on_serialize(pgl::serializer& serializer) {
+	void on_serialize(minimal_serializer::serializer& serializer) {
 		serializer += value1;
 		serializer += value2;
 		serializer += value3;
@@ -156,28 +156,28 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_not_change, Test, test_types) {
 		const auto expected = get_default<Test>();
 		const auto actual = expected;
-		pgl::serialize(actual);
+		minimal_serializer::serialize(actual);
 		// To deal with class who isn't compatible with ostream, compare directly
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_consistency, Test, test_types) {
 		const auto expected = get_default<Test>();
-		auto data1 = pgl::serialize(expected);
-		auto data2 = pgl::serialize(expected);
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_deserialize, Test, test_types) {
 		const auto expected = get_default<Test>();
 		Test actual{};
-		auto data = pgl::serialize(expected);
-		pgl::deserialize(actual, data);
+		auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_size, Test, test_types) {
-		auto size = pgl::get_serialized_size<Test>();
+		auto size = minimal_serializer::get_serialized_size<Test>();
 		BOOST_CHECK_EQUAL(get_size<Test>(), size);
 	}
 
@@ -185,55 +185,55 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		const auto actual = expected;
-		pgl::serialize(actual);
+		minimal_serializer::serialize(actual);
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
-		auto data1 = pgl::serialize(expected);
-		auto data2 = pgl::serialize(expected);
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		std::array<int32_t, 4> actual{};
-		auto data = pgl::serialize(expected);
-		pgl::deserialize(actual, data);
+		auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_size_array) {
-		auto size = pgl::get_serialized_size<std::array<int32_t, 4>>();
+		auto size = minimal_serializer::get_serialized_size<std::array<int32_t, 4>>();
 		BOOST_CHECK_EQUAL(sizeof(int32_t)*4, size);
 	}
 
 	// Tests for fixed_string
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_fixed_string) {
-		const pgl::fixed_string<16> expected = "abcdABCD";
+		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
 		const auto actual = expected;
-		pgl::serialize(actual);
+		minimal_serializer::serialize(actual);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_fixed_string) {
-		const pgl::fixed_string<16> expected = "abcdABCD";
-		auto data1 = pgl::serialize(expected);
-		auto data2 = pgl::serialize(expected);
+		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_fixed_string) {
-		const pgl::fixed_string<16> expected = "abcdABCD";
-		pgl::fixed_string<16> actual{};
-		auto data = pgl::serialize(expected);
-		pgl::deserialize(actual, data);
+		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
+		minimal_serializer::fixed_string<16> actual{};
+		auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_size_fixed_string) {
-		const auto size = pgl::get_serialized_size<pgl::fixed_string<16>>();
+		const auto size = minimal_serializer::get_serialized_size<minimal_serializer::fixed_string<16>>();
 		BOOST_CHECK_EQUAL(16, size);
 	}
 

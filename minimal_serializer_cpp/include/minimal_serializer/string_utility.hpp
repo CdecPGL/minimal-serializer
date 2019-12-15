@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "nameof.hpp"
 
-namespace pgl {
+namespace minimal_serializer {
 	// return true if generating string from enum type is supported. If this value is false, enum type values are treated as its underlying type values. This depends on nameof C++.
 	constexpr bool is_generate_enum_string_supported = nameof::is_nameof_enum_supported;
 

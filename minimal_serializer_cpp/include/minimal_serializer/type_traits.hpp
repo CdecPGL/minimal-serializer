@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <boost/tti/has_member_function.hpp>
 
-namespace pgl {
+namespace minimal_serializer {
 	class serializer;
 
 	// Remove const, volatile and reference

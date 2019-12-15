@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "serializer.hpp"
 #include "string_utility.hpp"
 
-namespace pgl {
+namespace minimal_serializer {
 	// Fixed length string which is trivial type. This class holds characters as uint8_t instead of char.
 	template <size_t Length>
 	class fixed_string final : boost::less_than_comparable<fixed_string<Length>>,
@@ -119,7 +119,7 @@ namespace pgl {
 
 namespace boost {
 	template <size_t Length>
-	size_t hash_value(const pgl::fixed_string<Length>& fixed_string) {
+	size_t hash_value(const minimal_serializer::fixed_string<Length>& fixed_string) {
 		size_t seed = 0;
 		hash_combine(seed, boost::hash_value(fixed_string.to_string()));
 		return seed;
@@ -128,8 +128,8 @@ namespace boost {
 
 namespace std {
 	template <size_t Length>
-	struct hash<pgl::fixed_string<Length>> {
-		size_t operator()(const pgl::fixed_string<Length>& fixed_string) const noexcept {
+	struct hash<minimal_serializer::fixed_string<Length>> {
+		size_t operator()(const minimal_serializer::fixed_string<Length>& fixed_string) const noexcept {
 			return boost::hash_value(fixed_string);
 		}
 	};

@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "string_utility.hpp"
 #include "type_traits.hpp"
 
-namespace pgl {
+namespace minimal_serializer {
 	class serialization_error final : public std::logic_error {
 		using logic_error::logic_error;
 	};
