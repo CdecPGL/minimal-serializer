@@ -1,3 +1,4 @@
+[![Release](https://img.shields.io/github/v/release/CdecPGL/minimal-serializer?include_prereleases&sort=semver)](https://github.com/CdecPGL/minimal-serializer/releases)
 [![License](https://img.shields.io/github/license/CdecPGL/minimal-serializer)](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE)
 [![CircleCI Buld and Test Status](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master.svg?style=shield)](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master)
 
@@ -5,51 +6,167 @@
 
 A C++ and C# binary serializer which serializes data without any extra data.
 
-## minimal_serializer_cpp
+- Minimal size without metadata
+- Portable between C++ and C#
+- Portable between different machines
+- Serialized size is always same and predictable if type is same
+- Header only in C++ version
 
-minimal-serializer for C++.
+Comparision of binary serializers for C++ and C#.
 
-### Requirements
+|Library|C++|C#|Minimal Size (No Metadata)|Portable|Supported Type|
+|:---|:---|:---|:---|:---|:---|
+|Minimal Serializer|〇|〇|〇|〇|Fixed Size Types Only|
+|Boost Serializer|〇|-|-|-|Almost All Types|
+|Cereal|〇|-|〇|〇|Almost All Types|
+|C# Built-in Serializer (BinaryFormatter)|-|〇|-|-|Almost All Types|
 
-- Boost Library 1.70 or higher
+## Example
+
+See [Serializer Usage](documents/serializer.md) to know usage of minimal-serializer.
+
+### C++
+
+```cpp
+#include "minimal_serializer/serializer.hpp"
+
+struct Data {
+    uint32_t value;
+    std::array<int64_t, 16> array;
+    minimal_serializer::fixed_string<32> string;
+
+    // Intrusive definition of serialize information
+    void on_serialize(serializer& serializer){
+        serializer += value;
+        serializer += array;
+        serializer += string;
+    }
+}
+
+// Not intrusive definition is also available
+void on_serialize(serializer& serializer, Data data){
+    serializer += data.value;
+    serializer += data.array;
+    serializer += data.string;
+}
+
+int main(){
+    // Get serialized size. The size is always same is typpe is same
+    auto size = minimal_serializer::get_serialized_size<Data>();
+    // Serialize to std::vector<uint8_t>
+    Data data;
+    auto byte_array = minimal_serializer::serialize(data);
+    // Deserialize from std::vector<uint8_t>
+    minimal_serializer::serialize(data, byte_array);
+}
+```
+
+### C#
+
+```csharp
+using System;
+
+// By Serializable attribute, the struct and class become serializable with minimal-serializer
+// Add [StructLayout(LayoutKind.Sequential)] if you want to serialize class
+[Serializable]
+class Data {
+    public uint value;
+    // To inform the size to serializer, FixedLength attribute is required
+    public [FixedLength(16)] long[] array;
+    public [FixedLength(32)] string string;
+}
+
+public class Main {
+    public static void Main(){
+        // Get serialized size. The size is always same is typpe is same
+        var size = CdecPGL.MinimalSerializerSerializer.GetSerializedSize<Data>();
+        // Serialize to byte[]
+        var data = new Data();
+        var byteArray = CdecPGL.MinimalSerializer.Serializer.Serialize(data);
+        // Deserialize from byte[]
+        data = CdecPGL.MinimalSerializer.Serializer.Deerialize(byteArray);
+    }
+}
+```
+
+## Requirement
+
+### C++
+
+- A compiler which is compatible with C++17 (VC++15.7, g++7 or clang5)
+- Boost Library 1.69 or higher
 - nameof C++ (this is included in this repository)
-- A compiler which is compatible with C++17(VC++15.7, g++7 or clang5)
-- CMake 3.8 or higher (used for build)
 
 #### Tested Compilers
 
-- g++-9
-- Clang-9
-- MSVC 15.a
+- g++ 8.3.0
+- Clang 8.9.9
+- MSVC 16.4.0
 
-### Install
+### C#
+
+- .NET FrameWork or .NET Core wich is compatible with .NET Standard 2.0
+
+## Install
+
+### C++
 
 This is header only library.
 
-***Copy all files in `minimal_serializer_cpp/include` directory to your project.***
+Copy `minimal_serializer_cpp/include` directory to your project.
 
-To install via CMake, follow the below steps.
+### C#
 
-1. Install a compiler which is compatible with C++17 (VC++15.7, g++7 or clang5)
-1. Install Boost Library 1.70 or higher (It is convenience to use vcpkg in Windows to install Boort Library)
+Copy all files in `MinimalSerializerCSharp/Source` directory to your project.
+
+## Run Tests
+
+### C++
+
+#### Visual Studio
+
+1. Open `minimal-serializer.sln` with Visual Studio
+1. Build `minimal_serializer_cpp_test` project
+1. Run the tests with test runner of Visual Studio
+
+#### CMake
+
+1. Install a compiler which is compatible with C++17
+1. Install Boost Library 1.69 or higher (It is convenience to use vcpkg in Windows to install Boort Library)
 1. Install CMake 3.8 or higher
 1. Move to the root directory of minimal-serializer
 1. `mkdir build`
 1. `cmake ..`
 1. `make install`
-1. `make test`
+1. `ctest`
 
-## MinimalSerializerCSharp
+Instead of installing required packages, you can use docker container "`cdec/minimal-serializer:dev-alpine`" to build and run tests like below command.
 
-minimal-serializer for C#.
+```bash
+docker run -v <A Path of Minimal Serialier Repogitory>:/minimal-serializer -itd cdec/minimal-serializer:dev-alpine
+```
 
-## Requrements
+`cdec/minimal-serializer:dev-alpine` is built from `docker/dev-alpine/Dockerfile` in this repository.
+You can build a docker image yourself with `docker/dev-alpine/Dockerfile` if you need.
 
-- Nothing
+### C#
 
-### Install
+1. Open `minimal-serializer.sln` with Visual Studio
+1. Build `MinimalSerializerCSharpTest` project
+1. Run the tests with test runner of Visual Studio
 
-Copy all files in `MinimalSerializerCSharp/Source` directory to your project.
+## Contribution
+
+Please submit issues ([https://github.com/CdecPGL/minimal-serializer/issues](https://github.com/CdecPGL/minimal-serializer/issues)) or create Pull Requests ([https://github.com/CdecPGL/minimal-serializer/pulls](https://github.com/CdecPGL/minimal-serializer/pulls)).
+
+You can create pull requests by below steps.
+
+1. Fork ([https://github.com/CdecPGL/minimal-serializer/fork](https://github.com/CdecPGL/minimal-serializer/fork))
+2. Create a feature branch
+3. Commit your changes
+4. Rebase your local changes against the master branch
+5. Run tests and confirm that it passes
+7. Create new Pull Request
 
 ## License
 
