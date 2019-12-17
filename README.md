@@ -16,10 +16,10 @@ Comparision of binary serializers for C++ and C#.
 
 |Library|C++|C#|Minimal Size (No Metadata)|Portable|Supported Type|
 |:---|:---|:---|:---|:---|:---|
-|Minimal Serializer|〇|〇|〇|〇|Fixed Size Types Only|
-|Boost Serializer|〇|-|-|-|Almost All Types|
-|Cereal|〇|-|〇|〇|Almost All Types|
-|C# Built-in Serializer (BinaryFormatter)|-|〇|-|-|Almost All Types|
+|Minimal Serializer|Yes|Yes|Yes|Yes|Fixed Size Types Only|
+|Boost Serializer|Yes|No|No|No|Almost All Types|
+|Cereal|Yes|No|Yes|Yes|Almost All Types|
+|C# Built-in Serializer (BinaryFormatter)|No|Yes|No|No|Almost All Types|
 
 ## Example
 
@@ -157,16 +157,16 @@ You can build a docker image yourself with `docker/dev-alpine/Dockerfile` if you
 
 ## Contribution
 
-Please submit issues ([https://github.com/CdecPGL/minimal-serializer/issues](https://github.com/CdecPGL/minimal-serializer/issues)) or create Pull Requests ([https://github.com/CdecPGL/minimal-serializer/pulls](https://github.com/CdecPGL/minimal-serializer/pulls)).
+Please submit issues ([https://github.com/CdecPGL/minimal-serializer/issues](https://github.com/CdecPGL/minimal-serializer/issues)) or create Pull Requests ([https://github.com/CdecPGL/minimal-serializer/pulls](https://github.com/CdecPGL/minimal-serializer/pulls)) if you find bugs or want to propose new features.
 
 You can create pull requests by below steps.
 
 1. Fork ([https://github.com/CdecPGL/minimal-serializer/fork](https://github.com/CdecPGL/minimal-serializer/fork))
-2. Create a feature branch
-3. Commit your changes
-4. Rebase your local changes against the master branch
-5. Run tests and confirm that it passes
-7. Create new Pull Request
+1. Create a feature branch
+1. Commit your changes
+1. Rebase your local changes against the master branch
+1. Run tests and confirm that it passes
+1. Create new Pull Request
 
 ## License
 
