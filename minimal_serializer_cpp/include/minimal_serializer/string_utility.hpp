@@ -20,37 +20,35 @@ namespace minimal_serializer {
 	// return true if generating string from enum type is supported. If this value is false, enum type values are treated as its underlying type values. This depends on nameof C++.
 	constexpr bool is_generate_enum_string_supported = nameof::is_nameof_enum_supported;
 
-	// Enable enum values to output by ostream
-	template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>, int> = 0>
-	std::ostream& operator <<(std::ostream& os, const Enum& enum_value) {
-		if constexpr (is_generate_enum_string_supported) {
-			os << nameof::nameof_enum(enum_value);
+	template<typename T>
+	void generate_string_converter(std::ostringstream& oss, T&& value){
+		using NonCVRefT = std::remove_cv_t<std::remove_reference_t<T>>;
+		// char types is recognized as character in ostringstream, so '0' means 'end of string' and '0' in char types will not displayed.
+		// To avoid this, cast char types to int before pass it to ostringstream
+		if constexpr (std::is_same_v<NonCVRefT, char> || std::is_same_v<NonCVRefT, unsigned char> || std::
+			is_same_v<NonCVRefT, signed char>) {
+			oss << static_cast<int>(value);
+		} else if constexpr (std::is_enum_v<T>){
+			if constexpr (is_generate_enum_string_supported) {
+				oss << nameof::nameof_enum(value);
+			} else {
+				oss << static_cast<std::underlying_type_t<T>>(value);
+			}
 		} else {
-			os << static_cast<std::underlying_type_t<Enum>>(enum_value);
+			oss << value;
 		}
-		return os;
 	}
 
-	// Enable std::type_info to output by ostream
-	inline std::ostream& operator <<(std::ostream& os, const std::type_info& type_info) {
-		os << type_info.name();
-		return os;
+	template<>
+	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& type_info){
+		oss << type_info.name();
 	}
 
 	inline void generate_string_impl(std::ostringstream&) {}
 
 	template <typename First, typename ... Rest>
 	void generate_string_impl(std::ostringstream& oss, First&& first, Rest&& ... rest) {
-		using non_cvref_first = std::remove_cv_t<std::remove_reference_t<First>>;
-		// char types is recognized as character in ostringstream, so '0' means 'end of string' and '0' in char types will not displayed.
-		// To avoid this, cast char types to int before pass it to ostringstream
-		if constexpr (std::is_same_v<non_cvref_first, char> || std::is_same_v<non_cvref_first, unsigned char> || std::
-			is_same_v<non_cvref_first, signed char>) {
-			const int first_non_char = first;
-			oss << first_non_char;
-		} else {
-			oss << std::forward<First>(first);
-		}
+		generate_string_converter(oss, std::forward<First>(first));
 		generate_string_impl(oss, std::forward<Rest>(rest)...);
 	}
 

@@ -21,6 +21,10 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		BOOST_CHECK_EQUAL(u8"123-456", minimal_serializer::generate_string(123, -456));
 	}
 
+	BOOST_AUTO_TEST_CASE(test_char_concatenation) {
+		BOOST_CHECK_EQUAL(u8"1230", minimal_serializer::generate_string(static_cast<char>(123), static_cast<char>(0)));
+	}
+
 	BOOST_AUTO_TEST_CASE(test_float_concatenation) {
 		BOOST_CHECK_EQUAL(u8"0.12-0.34", minimal_serializer::generate_string(0.12f, -0.34f));
 	}
@@ -32,6 +36,10 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 
 	BOOST_AUTO_TEST_CASE(test_bool_concatenation) {
 		BOOST_CHECK_EQUAL(u8"truefalse", minimal_serializer::generate_string(true, false));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_typeinfo_concatenation) {
+		BOOST_CHECK_EQUAL(std::string(typeid(int).name()) + typeid(bool).name(), minimal_serializer::generate_string(typeid(int), typeid(bool)));
 	}
 
 	enum class test_enum { element1, element2 };
