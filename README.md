@@ -100,8 +100,8 @@ public class Main {
 #### Tested Compilers
 
 - g++ 8.3.0
-- Clang 8.9.9
-- MSVC 16.4.0
+- Clang 8.0.0
+- MSVC 14.6.2
 
 ### C#
 
