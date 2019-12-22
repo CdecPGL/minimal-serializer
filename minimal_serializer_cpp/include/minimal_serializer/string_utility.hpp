@@ -21,18 +21,20 @@ namespace minimal_serializer {
 	constexpr bool is_generate_enum_string_supported = nameof::is_nameof_enum_supported;
 
 	template<typename T>
-	void generate_string_converter(std::ostringstream& oss, T&& value){
+	void generate_string_converter(std::ostringstream& oss, T&& value) {
 		using NonCVRefT = std::remove_cv_t<std::remove_reference_t<T>>;
 		// char types is recognized as character in ostringstream, so '0' means 'end of string' and '0' in char types will not displayed.
 		// To avoid this, cast char types to int before pass it to ostringstream
 		if constexpr (std::is_same_v<NonCVRefT, char> || std::is_same_v<NonCVRefT, unsigned char> || std::
 			is_same_v<NonCVRefT, signed char>) {
 			oss << static_cast<int>(value);
-		} else if constexpr (std::is_enum_v<T>){
+		}
+		else if constexpr (std::is_enum_v<NonCVRefT>) {
 			if constexpr (is_generate_enum_string_supported) {
 				oss << nameof::nameof_enum(value);
-			} else {
-				oss << static_cast<std::underlying_type_t<T>>(value);
+			}
+			else {
+				oss << static_cast<std::underlying_type_t<NonCVRefT>>(value);
 			}
 		} else {
 			oss << value;
@@ -40,7 +42,7 @@ namespace minimal_serializer {
 	}
 
 	template<>
-	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& type_info){
+	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& type_info) {
 		oss << type_info.name();
 	}
 
