@@ -16,7 +16,7 @@ else()
   target_include_directories(minimal_serializer_cpp PUBLIC ${includes})
 
   # Boost Library
-  find_package(Boost REQUIRED)
+  find_package(Boost 1.67.0 REQUIRED)
   # to avoid warnings, use SYSTEM (-isystem option of gcc)
   target_include_directories(minimal_serializer_cpp SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
   target_link_libraries(minimal_serializer_cpp ${Boost_LIBRARIES})
