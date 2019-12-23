@@ -17,10 +17,9 @@ else()
 
   # Boost Library
   find_package(Boost REQUIRED)
-  file(GLOB_RECURSE boost_library_paths "${Boost_LIBRARY_DIRS}/*boost*")
   # to avoid warnings, use SYSTEM (-isystem option of gcc)
   target_include_directories(minimal_serializer_cpp SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
-  target_link_libraries(minimal_serializer_cpp ${boost_library_paths})
+  target_link_libraries(minimal_serializer_cpp ${Boost_LIBRARIES})
 
   # Avoid to error of Boost Library 1.70 for MSVC
   if (MSVC)
