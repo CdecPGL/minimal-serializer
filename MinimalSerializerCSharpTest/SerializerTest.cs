@@ -495,5 +495,24 @@ namespace CdecPGL.Test
         {
             DeserializeTest(TestEnum.C);
         }
+
+        [Serializable]
+        internal struct OrderTestStruct
+        {
+            public byte Value1;
+            public byte Value2;
+            public byte Value3;
+            [FixedLength(8)] public string Str;
+        }
+
+        [TestMethod] 
+        public void SerializeOrderConsistencyTest()
+        {
+            var data = new OrderTestStruct { Value1 = 1, Value2 = 2, Value3 = 3, Str = "abcde"};
+            var actual = Serializer.Serialize(data);
+            var expected = new byte[] {1,2,3, (byte)'a', (byte)'b', (byte)'c', (byte)'d', (byte)'e', 0, 0, 0 };
+            Assert.IsTrue(actual.SequenceEqual(expected), $"Actual: {string.Join(",", actual)}, Expected: {string.Join(",", expected)}");
+            SerializeConsistencyTest(FixedStringStruct.GetDefault());
+        }
     }
 }
