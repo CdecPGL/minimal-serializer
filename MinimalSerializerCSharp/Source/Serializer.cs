@@ -486,8 +486,7 @@ namespace CdecPGL.MinimalSerializer
 
         private static bool IsComplexSerializableType(Type type)
         {
-            return GetFieldsOfComplexSerializableType(type).Length > 0 && type.IsLayoutSequential &&
-                   type.IsSerializable;
+            return type.IsLayoutSequential && type.IsSerializable && GetFieldsOfComplexSerializableType(type).Length > 0;
         }
 
         private static void ThrowNotSerializableException(Type type)
@@ -498,6 +497,8 @@ namespace CdecPGL.MinimalSerializer
 
         private static FieldInfo[] GetFieldsOfComplexSerializableType(Type type)
         {
+            // If not sequential, Marshal is not available and throws an exception
+            Debug.Assert(type.IsLayoutSequential);
             // GetFields() returns inconsistent order even if LayoutKind.Sequential is true in some case (I cannot find detailed condition...).
             // To avoid this, order by MetadataToken but Marshal.OffsetOf(Type, string) is deduplicate according to the document...
             // https://stackoverflow.com/questions/8067493/if-getfields-doesnt-guarantee-order-how-does-layoutkind-sequential-work
