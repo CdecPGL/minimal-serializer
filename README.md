@@ -36,15 +36,15 @@ struct Data {
     minimal_serializer::fixed_string<32> string;
 
     // Intrusive definition of serialize information
-    void on_serialize(serializer& serializer){
-        serializer += value;
-        serializer += array;
-        serializer += string;
+    static void on_serialize(Data& obj, serializer& serializer){
+        serializer += obj.value;
+        serializer += obj.array;
+        serializer += obj.string;
     }
 }
 
 // Not intrusive definition is also available
-void on_serialize(serializer& serializer, Data data){
+void on_serialize(Data data, serializer& serializer){
     serializer += data.value;
     serializer += data.array;
     serializer += data.string;

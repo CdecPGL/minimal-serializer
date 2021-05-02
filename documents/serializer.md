@@ -59,9 +59,9 @@ struct Data{
     int32_t value1;
     uint8_t value2;
 
-    void on_serialize(serializer& serializer){
-        serializer += value1;
-        serializer += value2;
+    static void on_serialize(Data obj, serializer& serializer){
+        serializer += obj.value1;
+        serializer += obj.value2;
     }
 };
 ```

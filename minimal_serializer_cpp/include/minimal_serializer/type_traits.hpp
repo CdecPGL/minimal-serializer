@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <type_traits>
 #include <memory>
 
-#include <boost/tti/has_member_function.hpp>
+#include <boost/tti/has_static_member_function.hpp>
 
 namespace minimal_serializer {
 	class serializer;
@@ -22,10 +22,10 @@ namespace minimal_serializer {
 	template <typename T>
 	using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
-	BOOST_TTI_HAS_MEMBER_FUNCTION(on_serialize)
+	BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(on_serialize)
 	
 	template <typename T>
-	constexpr bool has_member_on_serialize_v = has_member_function_on_serialize<T, void, boost::mpl::vector<serializer&>
+	constexpr bool has_member_on_serialize_v = has_static_member_function_on_serialize<T, void, boost::mpl::vector<T&, serializer&>
 		, boost::function_types::non_cv>::value;
 
 	struct has_global_on_serialize_impl {

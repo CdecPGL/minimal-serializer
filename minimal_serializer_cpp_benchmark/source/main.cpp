@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <array>
 #include <iostream>
 #include <iomanip>
+#include <chrono>
 
 #include <boost/io/ios_state.hpp>
 #include <boost/serialization/serialization.hpp>
@@ -40,11 +41,11 @@ struct Data {
 		& array;
 	}
 
-	void on_serialize(minimal_serializer::serializer& serializer) {
-		serializer += boolean;
-		serializer += unsigned_number;
-		serializer += number;
-		serializer += array;
+	static void on_serialize(Data& obj, minimal_serializer::serializer& serializer) {
+		serializer += obj.boolean;
+		serializer += obj.unsigned_number;
+		serializer += obj.number;
+		serializer += obj.array;
 	}
 };
 BOOST_CLASS_IMPLEMENTATION(Data, boost::serialization::object_serializable);
@@ -155,13 +156,88 @@ void size_benchmark()
 	minimal_serialized_size(data);
 }
 
+template <typename T>
+void boost_binary_serialized_speed(const T& data, const int iteration)
+{
+	std::cout << "===Boost Binary Serializer===" << std::endl;
+	std::ostringstream byte_data(std::ios::binary);
+
+	const auto start_time = std::chrono::system_clock::now();
+	for (auto i = 0; i < iteration; ++i) {
+		boost::archive::binary_oarchive ar(byte_data);
+		ar << data;
+	}
+	const auto end_time = std::chrono::system_clock::now();
+
+	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+}
+
+template <typename T>
+void cereal_binary_serialized_speed(const T& data, const int iteration)
+{
+	std::cout << "===Cereal Binary Serializer===" << std::endl;
+	std::ostringstream byte_data(std::ios::binary);
+
+	const auto start_time = std::chrono::system_clock::now();
+	for (auto i = 0; i < iteration; ++i) {
+		cereal::BinaryOutputArchive ar(byte_data);
+		ar(data);
+	}
+	const auto end_time = std::chrono::system_clock::now();
+
+	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+}
+
+template <typename T>
+void cereal_portable_binary_serialized_speed(const T& data, const int iteration)
+{
+	std::cout << "===Cereal Portable Binary Serializer===" << std::endl;
+	std::ostringstream byte_data(std::ios::binary);
+
+	const auto start_time = std::chrono::system_clock::now();
+	for (auto i = 0; i < iteration; ++i) {
+		cereal::PortableBinaryOutputArchive ar(byte_data);
+		ar(data);
+	}
+	const auto end_time = std::chrono::system_clock::now();
+
+	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+}
+
+template <typename T>
+void minimal_serialized_speed(const T& data, const int iteration)
+{
+	std::cout << "===Minimal Serializer===" << std::endl;
+	std::ostringstream byte_data(std::ios::binary);
+
+	cereal::PortableBinaryOutputArchive ar(byte_data);
+	const auto start_time = std::chrono::system_clock::now();
+	for (auto i = 0; i < iteration; ++i) {
+		auto byte_data = minimal_serializer::serialize(data);
+	}
+	const auto end_time = std::chrono::system_clock::now();
+
+	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+}
+
 void speed_benchmark()
 {
-	
+	const Data data{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+
+	constexpr auto iterations = 1000000;
+	boost_binary_serialized_speed(data, iterations);
+	cereal_binary_serialized_speed(data2, iterations);
+	cereal_portable_binary_serialized_speed(data2, iterations);
+	minimal_serialized_speed(data, iterations);
 }
 
 int main() {
-	size_benchmark();
+	//size_benchmark();
 	speed_benchmark();
 	return 0;
 }

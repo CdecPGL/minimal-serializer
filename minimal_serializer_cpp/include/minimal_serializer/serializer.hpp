@@ -51,7 +51,7 @@ namespace minimal_serializer {
 		static_assert(std::is_trivial_v<T>,
 			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
 		static_assert(has_member_on_serialize_v<T> || has_global_on_serialize_v<T>,
-			"There must be a member function T::on_serialize(serializer&) or a global function on_serialize(T& value, serializer&) to serialize."
+			"There must be a static member function T::on_serialize(T&, serializer&) or a global function on_serialize(T&, serializer&) to serialize."
 		);
 		throw serialization_error("Not serializable type.");
 	}
@@ -248,7 +248,7 @@ namespace minimal_serializer {
 		static_assert(std::is_trivial_v<T>,
 			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
 		static_assert(!std::is_const_v<T>,"T must not be const.");
-		value.on_serialize(serializer);
+		T::on_serialize(value, serializer);
 	}
 
 	template <typename T>

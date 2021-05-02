@@ -23,9 +23,9 @@ struct simple_struct_member_serialize final {
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
 
-	void on_serialize(minimal_serializer::serializer& serializer) {
-		serializer += value1;
-		serializer += value2;
+	static void on_serialize(simple_struct_member_serialize& obj, minimal_serializer::serializer& serializer) {
+		serializer += obj.value1;
+		serializer += obj.value2;
 	}
 
 	bool operator==(const simple_struct_member_serialize& other) const {
@@ -79,13 +79,13 @@ struct nested_struct final {
 	simple_struct_member_serialize value5;
 	simple_struct_global_serialize value6;
 
-	void on_serialize(minimal_serializer::serializer& serializer) {
-		serializer += value1;
-		serializer += value2;
-		serializer += value3;
-		serializer += value4;
-		serializer += value5;
-		serializer += value6;
+	static void on_serialize(nested_struct& obj, minimal_serializer::serializer& serializer) {
+		serializer += obj.value1;
+		serializer += obj.value2;
+		serializer += obj.value3;
+		serializer += obj.value4;
+		serializer += obj.value5;
+		serializer += obj.value6;
 	}
 
 	bool operator==(const nested_struct& other) const {
