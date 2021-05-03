@@ -219,6 +219,34 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		BOOST_CHECK_EQUAL(sizeof(int32_t)*4, size);
 	}
 
+	// Tests for std::tuple
+	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_tuple) {
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		const auto actual = expected;
+		minimal_serializer::serialize(actual);
+		BOOST_CHECK(expected == actual);
+	}
+
+	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_tuple) {
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
+		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
+	}
+
+	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_tuple) {
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> actual{};
+		const auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
+		BOOST_CHECK(expected == actual);
+	}
+
+	BOOST_AUTO_TEST_CASE(test_member_serialize_size_tuple) {
+		constexpr auto size = minimal_serializer::serialized_size_v<std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>>>;
+		BOOST_CHECK_EQUAL(sizeof(int32_t) + sizeof(uint16_t) + 1 + 8, size);
+	}
+
 	// Tests for fixed_string
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_fixed_string) {
 		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
