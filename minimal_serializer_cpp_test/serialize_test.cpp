@@ -23,7 +23,7 @@ struct simple_struct_member_serialize final {
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
 
-	static void on_serialize(simple_struct_member_serialize& obj, minimal_serializer::serializer& serializer) {
+	static void on_serialize(simple_struct_member_serialize& obj, minimal_serializer::serializer_legacy& serializer) {
 		serializer += obj.value1;
 		serializer += obj.value2;
 	}
@@ -66,7 +66,7 @@ struct simple_struct_global_serialize final {
 };
 
 namespace minimal_serializer {
-	void on_serialize(simple_struct_global_serialize& data, minimal_serializer::serializer& serializer) {
+	void on_serialize(simple_struct_global_serialize& data, minimal_serializer::serializer_legacy& serializer) {
 		serializer += data.value1;
 		serializer += data.value2;
 	}
@@ -83,7 +83,7 @@ struct nested_struct final {
 	simple_struct_member_serialize value5;
 	simple_struct_global_serialize value6;
 
-	static void on_serialize(nested_struct& obj, minimal_serializer::serializer& serializer) {
+	static void on_serialize(nested_struct& obj, minimal_serializer::serializer_legacy& serializer) {
 		serializer += obj.value1;
 		serializer += obj.value2;
 		serializer += obj.value3;
@@ -162,23 +162,23 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_not_change, Test, test_types) {
 		const auto expected = get_default<Test>();
 		const auto actual = expected;
-		minimal_serializer::serialize2(actual);
+		minimal_serializer::serialize(actual);
 		// To deal with class who isn't compatible with ostream, compare directly
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_consistency, Test, test_types) {
 		const auto expected = get_default<Test>();
-		auto data1 = minimal_serializer::serialize2(expected);
-		auto data2 = minimal_serializer::serialize2(expected);
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_deserialize, Test, test_types) {
 		const auto expected = get_default<Test>();
 		Test actual{};
-		auto data = minimal_serializer::serialize2(expected);
-		minimal_serializer::deserialize2(actual, data);
+		auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_CHECK(expected == actual);
 	}
 
@@ -191,22 +191,22 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		const auto actual = expected;
-		minimal_serializer::serialize2(actual);
+		minimal_serializer::serialize(actual);
 		BOOST_TEST(expected == actual, boost::test_tools::per_element());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
-		auto data1 = minimal_serializer::serialize2(expected);
-		auto data2 = minimal_serializer::serialize2(expected);
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		std::array<int32_t, 4> actual{};
-		const auto data = minimal_serializer::serialize2(expected);
-		minimal_serializer::deserialize2(actual, data);
+		const auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_TEST(expected == actual, boost::test_tools::per_element());
 	}
 
@@ -219,22 +219,22 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_fixed_string) {
 		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
 		const auto actual = expected;
-		minimal_serializer::serialize2(actual);
+		minimal_serializer::serialize(actual);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_fixed_string) {
 		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
-		auto data1 = minimal_serializer::serialize2(expected);
-		auto data2 = minimal_serializer::serialize2(expected);
+		auto data1 = minimal_serializer::serialize(expected);
+		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_fixed_string) {
 		const minimal_serializer::fixed_string<16> expected = "abcdABCD";
 		minimal_serializer::fixed_string<16> actual{};
-		const auto data = minimal_serializer::serialize2(expected);
-		minimal_serializer::deserialize2(actual, data);
+		const auto data = minimal_serializer::serialize(expected);
+		minimal_serializer::deserialize(actual, data);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 

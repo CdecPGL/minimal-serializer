@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <boost/tti/has_static_member_function.hpp>
 
 namespace minimal_serializer {
-	class serializer;
+	class serializer_legacy;
 
 	// Remove const, volatile and reference
 	template <typename T>
@@ -25,12 +25,12 @@ namespace minimal_serializer {
 	BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(on_serialize)
 	
 	template <typename T>
-	constexpr bool has_member_on_serialize_v = has_static_member_function_on_serialize<T, void, boost::mpl::vector<T&, serializer&>
+	constexpr bool has_member_on_serialize_v = has_static_member_function_on_serialize<T, void, boost::mpl::vector<T&, serializer_legacy&>
 		, boost::function_types::non_cv>::value;
 
 	struct has_global_on_serialize_impl {
 		template <class T>
-		static auto check(T&& x) -> decltype(on_serialize(std::declval<T&>(), std::declval<serializer&>()), std::true_type());
+		static auto check(T&& x) -> decltype(on_serialize(std::declval<T&>(), std::declval<serializer_legacy&>()), std::true_type());
 
 		template <class T>
 		static std::false_type check(...);

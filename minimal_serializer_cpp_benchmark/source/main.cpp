@@ -41,12 +41,14 @@ struct Data {
 		& array;
 	}
 
-	static void on_serialize(Data& obj, minimal_serializer::serializer& serializer) {
+	static void on_serialize(Data& obj, minimal_serializer::serializer_legacy& serializer) {
 		serializer += obj.boolean;
 		serializer += obj.unsigned_number;
 		serializer += obj.number;
 		serializer += obj.array;
 	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
 };
 BOOST_CLASS_IMPLEMENTATION(Data, boost::serialization::object_serializable);
 

@@ -102,7 +102,7 @@ namespace minimal_serializer {
 			return *c_str ? 1 + get_c_string_length(c_str + 1) : 0;
 		}
 
-		static void on_serialize(fixed_string& obj, serializer& serializer) {
+		static void on_serialize(fixed_string& obj, serializer_legacy& serializer) {
 			serializer += obj.data_;
 		}
 

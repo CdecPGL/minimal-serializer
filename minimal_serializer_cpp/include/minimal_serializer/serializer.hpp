@@ -51,7 +51,7 @@ namespace minimal_serializer {
 		static_assert(std::is_trivial_v<T>,
 			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
 		static_assert(has_member_on_serialize_v<T> || has_global_on_serialize_v<T>,
-			"There must be a static member function T::on_serialize(T&, serializer&) or a global function on_serialize(T&, serializer&) to serialize."
+			"There must be a static member function T::on_serialize(T&, serializer_legacy&) or a global function on_serialize(T&, serializer_legacy&) to serialize."
 		);
 		throw serialization_error("Not serializable type.");
 	}
@@ -126,12 +126,12 @@ namespace minimal_serializer {
 	using serialized_data = std::array<uint8_t, serialized_size_v<T>>;
 
 	template<class T, class SerializedData>
-	void serialize2_impl(const T& obj, SerializedData& data, size_t& offset);
+	void serialize_impl(const T& obj, SerializedData& data, size_t& offset);
 	
 	template<typename T, class SerializedData, size_t I>
 	void serialize_tuple_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
-		serialize2_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
+		serialize_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
 	}
 	
 	template<typename T, class SerializedData, size_t... Is>
@@ -147,7 +147,7 @@ namespace minimal_serializer {
 	}
 
 	template<class T, class SerializedData>
-	void serialize2_impl(const T& obj, SerializedData& data, size_t& offset)
+	void serialize_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
 		if constexpr (std::is_arithmetic_v<T>) {
 			auto e_value = convert_endian_native_to_big(obj);
@@ -157,7 +157,7 @@ namespace minimal_serializer {
 		}
 		else if constexpr (std::is_enum_v<T>) {
 			using underlying_type = std::underlying_type_t<T>;
-			serialize2_impl<underlying_type>(static_cast<underlying_type>(obj), data, offset);
+			serialize_impl<underlying_type>(static_cast<underlying_type>(obj), data, offset);
 		}
 		else if constexpr (is_tuple_like_v<T>) {
 			serialize_tuple<T>(obj, data, offset);
@@ -170,21 +170,21 @@ namespace minimal_serializer {
 	}
 
 	template<class T>
-	serialized_data<T> serialize2(const T& obj)
+	serialized_data<T> serialize(const T& obj)
 	{
 		size_t offset = 0;
 		serialized_data<T> data;
-		serialize2_impl(obj, data, offset);
+		serialize_impl(obj, data, offset);
 		return data;
 	}
 
 	template<class T, class SerializedData>
-	void deserialize2_impl(T& obj, const SerializedData& data, size_t& offset);
+	void deserialize_impl(T& obj, const SerializedData& data, size_t& offset);
 
 	template<typename T, class SerializedData, size_t I>
 	void deserialize_tuple_impl(T& obj, const SerializedData& data, size_t& offset)
 	{
-		deserialize2_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
+		deserialize_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
 	}
 
 	template<typename T, class SerializedData, size_t... Is>
@@ -200,7 +200,7 @@ namespace minimal_serializer {
 	}
 	
 	template<class T, class SerializedData>
-	void deserialize2_impl(T& obj, const SerializedData& data, size_t& offset)
+	void deserialize_impl(T& obj, const SerializedData& data, size_t& offset)
 	{
 		if constexpr (std::is_arithmetic_v<T>) {
 			const auto size = sizeof(T);
@@ -211,7 +211,7 @@ namespace minimal_serializer {
 		else if constexpr (std::is_enum_v<T>) {
 			using underlying_type = std::underlying_type_t<T>;
 			// In order to cast with referencing same value, cast via pointer.
-			deserialize2_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), data, offset);
+			deserialize_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), data, offset);
 		}
 		else if constexpr (is_tuple_like_v<T>) {
 			deserialize_tuple<T>(obj, data, offset);
@@ -224,14 +224,14 @@ namespace minimal_serializer {
 	}
 	
 	template<class T>
-	void deserialize2(T& obj, const serialized_data<T>& data)
+	void deserialize(T& obj, const serialized_data<T>& data)
 	{
 		size_t offset = 0;
-		deserialize2_impl(obj, data, offset);
+		deserialize_impl(obj, data, offset);
 	}
 	
 
-	class serializer final {
+	class serializer_legacy final {
 	public:
 		
 		// Add a values as a serialization target. The type of the value must be trivial.
@@ -331,7 +331,7 @@ namespace minimal_serializer {
 		}
 
 		template <typename T>
-		friend auto serialize(const T&) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>>;
+		friend auto serialize_legacy(const T&) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>>;
 
 		template <typename T>
 		auto serialize(const T& target) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>> {
@@ -360,7 +360,7 @@ namespace minimal_serializer {
 		}
 
 		template <typename T>
-		friend auto deserialize(T&, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>>;
+		friend auto deserialize_legacy(T&, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>>;
 
 		template <typename T>
 		auto deserialize(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>> {
@@ -391,7 +391,7 @@ namespace minimal_serializer {
 		}
 
 		template <typename T>
-		friend auto get_serialized_size() -> std::enable_if_t<is_serializable_v<T>, size_t>;
+		friend auto get_serialized_size_legacy() -> std::enable_if_t<is_serializable_v<T>, size_t>;
 
 		template <typename T>
 		auto get_serialized_size() -> std::enable_if_t<is_serializable_v<T>, size_t> {
@@ -399,7 +399,7 @@ namespace minimal_serializer {
 
 			if (status_ != status::none) {
 				throw serialization_error(
-					"Cannot start get_serialized_size in serialization or deserialization progress.");
+					"Cannot start get_serialized_size_legacy in serialization or deserialization progress.");
 			}
 
 			// Build size estimators
@@ -420,7 +420,7 @@ namespace minimal_serializer {
 	};
 
 	template <typename T>
-	auto on_serialize(T& value, serializer& serializer) -> std::enable_if_t<has_member_on_serialize_v<T>> {
+	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<has_member_on_serialize_v<T>> {
 		static_assert(std::is_trivial_v<T>,
 			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
 		static_assert(!std::is_const_v<T>,"T must not be const.");
@@ -428,55 +428,55 @@ namespace minimal_serializer {
 	}
 
 	template <typename T>
-	auto on_serialize(T& value, serializer& serializer) -> std::enable_if_t<std::is_arithmetic_v<T>> {
+	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<std::is_arithmetic_v<T>> {
 		static_assert(!std::is_const_v<T>, "T must not be const.");
 		serializer += value;
 	}
 
 	template <typename T>
-	auto on_serialize(T& value, serializer& serializer) -> std::enable_if_t<std::is_enum_v<T>> {
+	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<std::is_enum_v<T>> {
 		static_assert(!std::is_const_v<T>, "T must not be const.");
 		serializer += value;
 	}
 
 	template <typename T, size_t V>
-	void on_serialize(std::array<T, V>& value, serializer& serializer) {
+	void on_serialize(std::array<T, V>& value, serializer_legacy& serializer) {
 		static_assert(!std::is_const_v<T>, "T must not be const.");
 		serializer += value;
 	}
 
 	// Serialize target to send data to a network
 	template <typename T>
-	auto serialize(const T& target) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>> {
-		return serializer().serialize(target);
+	auto serialize_legacy(const T& target) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>> {
+		return serializer_legacy().serialize(target);
 	}
 
 	template <typename T>
-	auto serialize(const T& target) -> std::enable_if_t<!is_serializable_v<T>, std::vector<uint8_t>> {
+	auto serialize_legacy(const T& target) -> std::enable_if_t<!is_serializable_v<T>, std::vector<uint8_t>> {
 		return raise_error_for_not_serializable_type<T, std::vector<uint8_t>>();
 	}
 
 	// Deserialize data to get data from a network
 	template <typename T>
-	auto deserialize(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>> {
+	auto deserialize_legacy(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>> {
 		static_assert(!std::is_const_v<T>, "T must not be const.");
-		serializer().deserialize(target, data);
+		serializer_legacy().deserialize(target, data);
 	}
 
 	template <typename T>
-	auto deserialize(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<!is_serializable_v<T>> {
+	auto deserialize_legacy(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<!is_serializable_v<T>> {
 		static_assert(!std::is_const_v<T>, "T must not be const.");
 		raise_error_for_not_serializable_type<T>();
 	}
 
 	// Get a serialized size of a type.
 	template <typename T>
-	auto get_serialized_size() -> std::enable_if_t<is_serializable_v<T>, size_t> {
-		return serializer().get_serialized_size<T>();
+	auto get_serialized_size_legacy() -> std::enable_if_t<is_serializable_v<T>, size_t> {
+		return serializer_legacy().get_serialized_size<T>();
 	}
 
 	template <typename T>
-	auto get_serialized_size() -> std::enable_if_t<!is_serializable_v<T>, size_t> {
+	auto get_serialized_size_legacy() -> std::enable_if_t<!is_serializable_v<T>, size_t> {
 		return raise_error_for_not_serializable_type<T, size_t>();
 	}
 }
