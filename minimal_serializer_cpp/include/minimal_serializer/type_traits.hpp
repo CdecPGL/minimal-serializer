@@ -57,6 +57,20 @@ namespace minimal_serializer {
 	template <class T>
 	constexpr bool is_fixed_array_container_v = is_fixed_array_container<T>::value;
 
+	struct is_tuple_like_impl {
+		template <class T>
+		static auto check(T&& x) -> decltype(std::tuple_size<T>::value, std::true_type{});
+
+		template <class T>
+		static auto check(...)->std::false_type;
+	};
+
+	template <class T>
+	struct is_tuple_like final : decltype(is_tuple_like_impl::check<T>(std::declval<T>())) {};
+
+	template <class T>
+	constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
+
 	template <typename T>
 	struct is_shared_ptr : std::false_type {};
 
@@ -65,4 +79,13 @@ namespace minimal_serializer {
 
 	template <typename T>
 	constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
+
+	template <typename C, typename V>
+	auto member_variable_pointer_t_impl(V C::* p)->std::pair<C, V>;
+
+	template <auto P>
+	using member_variable_pointer_class_t = typename decltype(member_variable_pointer_t_impl(P))::first_type;
+
+	template <auto P>
+	using member_variable_pointer_variable_t = typename decltype(member_variable_pointer_t_impl(P))::second_type;
 }

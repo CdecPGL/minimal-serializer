@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "minimal_serializer/fixed_string.hpp"
 
 // 22 bytes
-struct simple_struct_member_serialize final {
+struct simple_struct_member_serialize final {	
 	const static size_t size = 22;
 
 	std::array<int32_t, 5> value1;
@@ -39,6 +39,8 @@ struct simple_struct_member_serialize final {
 			8777
 		};
 	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
 };
 
 // 22 bytes
@@ -59,6 +61,8 @@ struct simple_struct_global_serialize final {
 			8777
 		};
 	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
 };
 
 namespace minimal_serializer {
@@ -107,6 +111,8 @@ struct nested_struct final {
 			{{10, 11, 12, 13, 14}, 8777}
 		};
 	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &nested_struct::value5, &nested_struct::value6>;
 };
 
 enum test_enum { a, b, c };
@@ -156,15 +162,15 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_not_change, Test, test_types) {
 		const auto expected = get_default<Test>();
 		const auto actual = expected;
-		minimal_serializer::serialize(actual);
+		minimal_serializer::serialize2(actual);
 		// To deal with class who isn't compatible with ostream, compare directly
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_consistency, Test, test_types) {
 		const auto expected = get_default<Test>();
-		auto data1 = minimal_serializer::serialize(expected);
-		auto data2 = minimal_serializer::serialize(expected);
+		auto data1 = minimal_serializer::serialize2(expected);
+		auto data2 = minimal_serializer::serialize2(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
@@ -177,7 +183,7 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_size, Test, test_types) {
-		auto size = minimal_serializer::get_serialized_size<Test>();
+		auto size = minimal_serializer::serialized_size_v<Test>;
 		BOOST_CHECK_EQUAL(get_size<Test>(), size);
 	}
 
@@ -185,14 +191,14 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		const auto actual = expected;
-		minimal_serializer::serialize(actual);
+		minimal_serializer::serialize2(actual);
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
-		auto data1 = minimal_serializer::serialize(expected);
-		auto data2 = minimal_serializer::serialize(expected);
+		auto data1 = minimal_serializer::serialize2(expected);
+		auto data2 = minimal_serializer::serialize2(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 

@@ -56,8 +56,125 @@ namespace minimal_serializer {
 		throw serialization_error("Not serializable type.");
 	}
 
+	/** A container to hold member variable pointer which are serialize target.
+	 */
+	template<auto T, auto... Ts>
+	class serialize_targets_container
+	{
+	public:
+		using ptr_types = std::tuple<decltype(T), decltype(Ts)...>;
+		const ptr_types ptrs = ptr_types(T, Ts...);
+		using types = std::tuple<member_variable_pointer_variable_t<T>, member_variable_pointer_variable_t<Ts>...>;
+		using class_type = member_variable_pointer_class_t<T>;
+
+		static types get_reference_tuple(const class_type& obj)
+		{
+			return std::tie(obj.*T, obj.*Ts...);
+		}
+	};
+	
+	template<class T>
+	constexpr size_t get_serialized_size_impl();
+	
+	template<typename T, size_t... I>
+	constexpr size_t serialized_size_tuple_impl(std::index_sequence<I...>)
+	{
+		return (get_serialized_size_impl<std::tuple_element_t<I, T>>()+...);
+	}
+	
+	template<typename T>
+	constexpr size_t serialized_size_tuple()
+	{
+		return serialized_size_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
+	}
+
+	template<class T>
+	constexpr size_t get_serialized_size_impl()
+	{
+		if constexpr (std::is_arithmetic_v<T>) {
+			return sizeof(T);
+		}
+		else if constexpr (std::is_enum_v<T>) {
+			return sizeof(std::underlying_type_t<T>);
+		}
+		else if constexpr (is_tuple_like_v<T>) {
+			return serialized_size_tuple<T>();
+		}
+		else {
+			using target_types = typename T::serialize_targets::types;
+			return serialized_size_tuple<target_types>();
+		}
+	}
+
+	template<class T>
+	struct serialized_size
+	{
+		const static size_t value = get_serialized_size_impl<T>();
+	};
+
+	template<class T>
+	constexpr size_t serialized_size_v = serialized_size<T>::value;
+
+	template<class T>
+	using serialized_data = std::array<uint8_t, serialized_size_v<T>>;
+
+	template<class T, class SerializedData>
+	void serialize2_impl(const T& obj, SerializedData& data, size_t& offset);
+	
+	template<typename T, class SerializedData, size_t I>
+	void serialize_tuple_impl(const T& target, SerializedData& data, size_t& offset)
+	{
+		serialize2_impl<std::tuple_element_t<I, T>>(std::get<I>(target), data, offset);
+	}
+	
+	template<typename T, class SerializedData, size_t... Is>
+	void serialize_tuple_impl(const T& target, SerializedData& data, size_t& offset, std::index_sequence<Is...>)
+	{
+		(serialize_tuple_impl<T, SerializedData, Is>(target, data, offset), ...);
+	}
+
+	template<typename T, class SerializedData>
+	void serialize_tuple(const T& target, SerializedData& data, size_t& offset)
+	{
+		serialize_tuple_impl<T>(target, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
+	}
+
+	template<class T, class SerializedData>
+	void serialize2_impl(const T& obj, SerializedData& data, size_t& offset)
+	{
+		if constexpr (std::is_arithmetic_v<T>) {
+			auto e_value = convert_endian_native_to_big(obj);
+			const auto size = sizeof(T);
+			std::memcpy(data.data() + offset, &e_value, size);
+			offset += size;
+		}
+		else if constexpr (std::is_enum_v<T>) {
+			using underlying_type = std::underlying_type_t<T>;
+			serialize2_impl<underlying_type>(static_cast<underlying_type>(obj), data, offset);
+		}
+		else if constexpr (is_tuple_like_v<T>) {
+			serialize_tuple<T>(obj, data, offset);
+		}
+		else {
+			using target_types = typename T::serialize_targets::types;
+			const auto& target_references = T::serialize_targets::get_reference_tuple(obj);
+			serialize_tuple<target_types>(target_references, data, offset);
+		}
+	}
+
+	template<class T>
+	serialized_data<T> serialize2(const T& target)
+	{
+		size_t offset = 0;
+		serialized_data<T> data;
+		serialize2_impl(target, data, offset);
+		return data;
+	}
+	
+
 	class serializer final {
 	public:
+		
 		// Add a values as a serialization target. The type of the value must be trivial.
 		template <typename T>
 		auto operator +=(T& value) -> std::enable_if_t<is_serializable_v<T>> {

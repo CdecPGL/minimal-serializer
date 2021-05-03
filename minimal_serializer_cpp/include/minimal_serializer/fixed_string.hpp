@@ -108,6 +108,9 @@ namespace minimal_serializer {
 
 	private:
 		std::array<uint8_t, Length> data_;
+
+	public:
+		using serialize_targets = serialize_targets_container<&fixed_string::data_>;
 	};
 
 	template <size_t Length>
