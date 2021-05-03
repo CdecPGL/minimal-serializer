@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/level.hpp>
 
 #include <cereal/cereal.hpp>
@@ -159,71 +160,133 @@ void size_benchmark()
 }
 
 template <typename T>
-void boost_binary_serialized_speed(const T& data, const int iteration)
+void boost_binary_serializer_speed(const T& data, const int iteration)
 {
 	std::cout << "===Boost Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 
-	const auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < iteration; ++i) {
-		boost::archive::binary_oarchive ar(byte_data);
-		ar << data;
-	}
-	const auto end_time = std::chrono::system_clock::now();
+	{
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			boost::archive::binary_oarchive ar(byte_data);
+			ar << data;
+		}
+		const auto end_time = std::chrono::system_clock::now();
 
-	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Serialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
+
+	{
+		std::istringstream in_byte_data(byte_data.str(), std::ios::binary);
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			boost::archive::binary_iarchive ar(in_byte_data);
+			T t{};
+			ar >> t;
+		}
+		const auto end_time = std::chrono::system_clock::now();
+
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Deserialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
 }
 
 template <typename T>
-void cereal_binary_serialized_speed(const T& data, const int iteration)
+void cereal_binary_serializer_speed(const T& data, const int iteration)
 {
 	std::cout << "===Cereal Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 
-	const auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < iteration; ++i) {
-		cereal::BinaryOutputArchive ar(byte_data);
-		ar(data);
-	}
-	const auto end_time = std::chrono::system_clock::now();
+	{
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			cereal::BinaryOutputArchive ar(byte_data);
+			ar(data);
+		}
+		const auto end_time = std::chrono::system_clock::now();
 
-	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Serialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
+
+	{
+		std::istringstream in_byte_data(byte_data.str(), std::ios::binary);
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			cereal::BinaryInputArchive ar(in_byte_data);
+			T t{};
+			ar(t);
+		}
+		const auto end_time = std::chrono::system_clock::now();
+
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Deserialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
 }
 
 template <typename T>
-void cereal_portable_binary_serialized_speed(const T& data, const int iteration)
+void cereal_portable_binary_serializer_speed(const T& data, const int iteration)
 {
 	std::cout << "===Cereal Portable Binary Serializer===" << std::endl;
+
 	std::ostringstream byte_data(std::ios::binary);
+	{
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			cereal::PortableBinaryOutputArchive ar(byte_data);
+			ar(data);
+		}
+		const auto end_time = std::chrono::system_clock::now();
 
-	const auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < iteration; ++i) {
-		cereal::PortableBinaryOutputArchive ar(byte_data);
-		ar(data);
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Serialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
 	}
-	const auto end_time = std::chrono::system_clock::now();
 
-	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	{
+		std::istringstream in_byte_data(byte_data.str(), std::ios::binary);
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			cereal::PortableBinaryInputArchive ar(in_byte_data);
+			T t{};
+			ar(t);
+		}
+		const auto end_time = std::chrono::system_clock::now();
+
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Deserialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
 }
 
 template <typename T>
-void minimal_serialized_speed(const T& data, const int iteration)
+void minimal_serializer_speed(const T& data, const int iteration)
 {
 	std::cout << "===Minimal Serializer===" << std::endl;
-	std::ostringstream byte_data(std::ios::binary);
 
-	cereal::PortableBinaryOutputArchive ar(byte_data);
-	const auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < iteration; ++i) {
-		auto byte_data = minimal_serializer::serialize(data);
+	{
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			auto byte_data = minimal_serializer::serialize(data);
+		}
+		const auto end_time = std::chrono::system_clock::now();
+
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Serialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
 	}
-	const auto end_time = std::chrono::system_clock::now();
 
-	const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Size: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	{
+		const auto byte_data = minimal_serializer::serialize(data);
+
+		const auto start_time = std::chrono::system_clock::now();
+		for (auto i = 0; i < iteration; ++i) {
+			T t{};
+			minimal_serializer::deserialize(t, byte_data);
+		}
+		const auto end_time = std::chrono::system_clock::now();
+
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		std::cout << "Deserialize: " << duration << " milli seconds for " << iteration << " iterations." << std::endl;
+	}
 }
 
 void speed_benchmark()
@@ -232,10 +295,10 @@ void speed_benchmark()
 	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
 
 	constexpr auto iterations = 1000000;
-	boost_binary_serialized_speed(data, iterations);
-	cereal_binary_serialized_speed(data2, iterations);
-	cereal_portable_binary_serialized_speed(data2, iterations);
-	minimal_serialized_speed(data, iterations);
+	//boost_binary_serializer_speed(data, iterations);
+	//cereal_binary_serializer_speed(data2, iterations);
+	cereal_portable_binary_serializer_speed(data2, iterations);
+	minimal_serializer_speed(data, iterations);
 }
 
 int main() {

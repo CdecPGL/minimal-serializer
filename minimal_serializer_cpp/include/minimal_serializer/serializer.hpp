@@ -24,15 +24,25 @@ namespace minimal_serializer {
 	};
 
 	template <typename T>
-	T convert_endian_native_to_big(T value) {
+	T convert_endian_native_to_big(const T& value) {
 		return boost::endian::native_to_big(value);
 	}
 
 	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
 	template<>
-	inline bool convert_endian_native_to_big(bool value) {
+	inline bool convert_endian_native_to_big(const bool& value)
+	{
 		return value;
 	}
+	
+	template <typename T>
+	void convert_endian_native_to_big_inplace(T& value) {
+		boost::endian::native_to_big_inplace(value);
+	}
+
+	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
+	template<>
+	inline void convert_endian_native_to_big_inplace(bool& value) { }
 
 	template <typename T>
 	void convert_endian_big_to_native_inplace(T& value) {
@@ -161,9 +171,11 @@ namespace minimal_serializer {
 	void serialize_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
 		if constexpr (std::is_arithmetic_v<T>) {
-			auto e_value = convert_endian_native_to_big(obj);
-			const auto size = sizeof(T);
-			std::memcpy(data.data() + offset, &e_value, size);
+			constexpr auto size = sizeof(T);
+			uint8_t* data_ptr = data.data() + offset;
+			std::memcpy(data_ptr, &obj, size);
+			auto& e_value = *reinterpret_cast<T*>(data_ptr);
+			convert_endian_native_to_big_inplace(e_value);
 			offset += size;
 		}
 		else if constexpr (std::is_enum_v<T>) {
