@@ -66,8 +66,15 @@ namespace minimal_serializer {
 		const ptr_types ptrs = ptr_types(T, Ts...);
 		using types = std::tuple<member_variable_pointer_variable_t<T>, member_variable_pointer_variable_t<Ts>...>;
 		using class_type = member_variable_pointer_class_t<T>;
+		using const_reference_types = std::tuple<std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<T>>>, std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<Ts>>>...>;
+		using reference_types = std::tuple<std::add_lvalue_reference_t<member_variable_pointer_variable_t<T>>, std::add_lvalue_reference_t<member_variable_pointer_variable_t<Ts>>...>;
 
-		static types get_reference_tuple(const class_type& obj)
+		static const_reference_types get_const_reference_tuple(const class_type& obj)
+		{
+			return std::tie(obj.*T, obj.*Ts...);
+		}
+
+		static reference_types get_reference_tuple(class_type& obj)
 		{
 			return std::tie(obj.*T, obj.*Ts...);
 		}
@@ -79,7 +86,7 @@ namespace minimal_serializer {
 	template<typename T, size_t... I>
 	constexpr size_t serialized_size_tuple_impl(std::index_sequence<I...>)
 	{
-		return (get_serialized_size_impl<std::tuple_element_t<I, T>>()+...);
+		return (get_serialized_size_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>()+...);
 	}
 	
 	template<typename T>
@@ -122,21 +129,21 @@ namespace minimal_serializer {
 	void serialize2_impl(const T& obj, SerializedData& data, size_t& offset);
 	
 	template<typename T, class SerializedData, size_t I>
-	void serialize_tuple_impl(const T& target, SerializedData& data, size_t& offset)
+	void serialize_tuple_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
-		serialize2_impl<std::tuple_element_t<I, T>>(std::get<I>(target), data, offset);
+		serialize2_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
 	}
 	
 	template<typename T, class SerializedData, size_t... Is>
-	void serialize_tuple_impl(const T& target, SerializedData& data, size_t& offset, std::index_sequence<Is...>)
+	void serialize_tuple_impl(const T& obj, SerializedData& data, size_t& offset, std::index_sequence<Is...>)
 	{
-		(serialize_tuple_impl<T, SerializedData, Is>(target, data, offset), ...);
+		(serialize_tuple_impl<T, SerializedData, Is>(obj, data, offset), ...);
 	}
 
 	template<typename T, class SerializedData>
-	void serialize_tuple(const T& target, SerializedData& data, size_t& offset)
+	void serialize_tuple(const T& obj, SerializedData& data, size_t& offset)
 	{
-		serialize_tuple_impl<T>(target, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
+		serialize_tuple_impl<T>(obj, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
 	}
 
 	template<class T, class SerializedData>
@@ -156,19 +163,71 @@ namespace minimal_serializer {
 			serialize_tuple<T>(obj, data, offset);
 		}
 		else {
-			using target_types = typename T::serialize_targets::types;
-			const auto& target_references = T::serialize_targets::get_reference_tuple(obj);
+			using target_types = typename T::serialize_targets::const_reference_types;
+			const auto target_references = T::serialize_targets::get_const_reference_tuple(obj);
 			serialize_tuple<target_types>(target_references, data, offset);
 		}
 	}
 
 	template<class T>
-	serialized_data<T> serialize2(const T& target)
+	serialized_data<T> serialize2(const T& obj)
 	{
 		size_t offset = 0;
 		serialized_data<T> data;
-		serialize2_impl(target, data, offset);
+		serialize2_impl(obj, data, offset);
 		return data;
+	}
+
+	template<class T, class SerializedData>
+	void deserialize2_impl(T& obj, const SerializedData& data, size_t& offset);
+
+	template<typename T, class SerializedData, size_t I>
+	void deserialize_tuple_impl(T& obj, const SerializedData& data, size_t& offset)
+	{
+		deserialize2_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
+	}
+
+	template<typename T, class SerializedData, size_t... Is>
+	void deserialize_tuple_impl(T& obj, const SerializedData& data, size_t& offset, std::index_sequence<Is...>)
+	{
+		(deserialize_tuple_impl<T, SerializedData, Is>(obj, data, offset), ...);
+	}
+
+	template<typename T, class SerializedData>
+	void deserialize_tuple(T& obj, const SerializedData& data, size_t& offset)
+	{
+		deserialize_tuple_impl<T>(obj, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
+	}
+	
+	template<class T, class SerializedData>
+	void deserialize2_impl(T& obj, const SerializedData& data, size_t& offset)
+	{
+		if constexpr (std::is_arithmetic_v<T>) {
+			const auto size = sizeof(T);
+			std::memcpy(&obj, data.data() + offset, size);
+			convert_endian_big_to_native_inplace(obj);
+			offset += size;
+		}
+		else if constexpr (std::is_enum_v<T>) {
+			using underlying_type = std::underlying_type_t<T>;
+			// In order to cast with referencing same value, cast via pointer.
+			deserialize2_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), data, offset);
+		}
+		else if constexpr (is_tuple_like_v<T>) {
+			deserialize_tuple<T>(obj, data, offset);
+		}
+		else {
+			using target_types = typename T::serialize_targets::reference_types;
+			auto target_references = T::serialize_targets::get_reference_tuple(obj);
+			deserialize_tuple<target_types>(target_references, data, offset);
+		}
+	}
+	
+	template<class T>
+	void deserialize2(T& obj, const serialized_data<T>& data)
+	{
+		size_t offset = 0;
+		deserialize2_impl(obj, data, offset);
 	}
 	
 
