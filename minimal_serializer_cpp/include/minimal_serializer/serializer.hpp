@@ -79,6 +79,17 @@ namespace minimal_serializer {
 			return std::tie(obj.*T, obj.*Ts...);
 		}
 	};
+
+	
+	template <class T>
+	struct serialize_targets
+	{
+		using type = typename T::serialize_targets;
+	};
+
+	template <class T>
+	using serialize_targets_t = typename serialize_targets<T>::type;
+	
 	
 	template<class T>
 	constexpr size_t get_serialized_size_impl();
@@ -108,7 +119,7 @@ namespace minimal_serializer {
 			return serialized_size_tuple<T>();
 		}
 		else {
-			using target_types = typename T::serialize_targets::types;
+			using target_types = typename serialize_targets_t<T>::types;
 			return serialized_size_tuple<target_types>();
 		}
 	}
@@ -163,8 +174,8 @@ namespace minimal_serializer {
 			serialize_tuple<T>(obj, data, offset);
 		}
 		else {
-			using target_types = typename T::serialize_targets::const_reference_types;
-			const auto target_references = T::serialize_targets::get_const_reference_tuple(obj);
+			using target_types = typename serialize_targets_t<T>::const_reference_types;
+			const auto target_references = serialize_targets_t<T>::get_const_reference_tuple(obj);
 			serialize_tuple<target_types>(target_references, data, offset);
 		}
 	}
@@ -217,8 +228,8 @@ namespace minimal_serializer {
 			deserialize_tuple<T>(obj, data, offset);
 		}
 		else {
-			using target_types = typename T::serialize_targets::reference_types;
-			auto target_references = T::serialize_targets::get_reference_tuple(obj);
+			using target_types = typename serialize_targets_t<T>::reference_types;
+			auto target_references = serialize_targets_t<T>::get_reference_tuple(obj);
 			deserialize_tuple<target_types>(target_references, data, offset);
 		}
 	}

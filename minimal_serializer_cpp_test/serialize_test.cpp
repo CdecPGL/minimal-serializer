@@ -61,8 +61,6 @@ struct simple_struct_global_serialize final {
 			8777
 		};
 	}
-
-	using serialize_targets = minimal_serializer::serialize_targets_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
 };
 
 namespace minimal_serializer {
@@ -70,6 +68,12 @@ namespace minimal_serializer {
 		serializer += data.value1;
 		serializer += data.value2;
 	}
+
+	template <>
+	struct serialize_targets<simple_struct_global_serialize>
+	{
+		using type = serialize_targets_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
+	};
 }
 
 // 94 bytes
