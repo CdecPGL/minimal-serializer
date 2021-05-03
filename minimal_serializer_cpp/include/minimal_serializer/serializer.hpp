@@ -99,7 +99,32 @@ namespace minimal_serializer {
 
 	template <class T>
 	using serialize_targets_t = typename serialize_targets<T>::type;
-	
+
+	template <class T>
+	struct optimized_serialize_targets_impl
+	{
+		using type = typename T::serialize_targets;
+	};
+
+	//template <class T,std::index_sequence<Is...> ,size_t... Is>
+	//struct optimized_serialize_targets_impl
+	//{
+	//	using type = typename T::serialize_targets;
+	//};
+	//
+	//template <class T>
+	//struct optimized_serialize_targets_impl
+	//{
+	//	const static auto ptrs = T::ptrs;
+	//	using ptr_types = T::ptr_types;
+	//	using type = optimized_serialize_targets_impl<T, std::make_index_sequence<std::tuple_size_v<ptr_types>>>;
+	//};
+	//
+	//template <class T>
+	//struct optimized_serialize_targets
+	//{
+	//	using type = typename optimized_serialize_targets_impl<T>::type;
+	//};
 	
 	template<class T>
 	constexpr size_t get_serialized_size_impl();

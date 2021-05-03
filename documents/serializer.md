@@ -4,12 +4,14 @@
 
 ### Available Types
 
+Types whose size is defined in compile time are supported.
+
 - Size Defined Integer Types: int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
 - Boolean Type
-- std::array
+- Static Containers: std::array, std::tuple
 - Enum Types: enum, enum class, enum struct
 - fixed_string
-- Trivial Custom Classes
+- Trivial Custom Classes which has serialize targets definition
 
 ### Not Available Types
 
@@ -19,6 +21,7 @@ Types whose size is different in each environment or will be change dynamically 
 - Float Types: float, double, etc. (Due to boost::endian library. This will be available in future)
 - Not Trivial Custom Classes
 - Dynamic Containers: std::vector, std::map, std::string, etc.
+- std::string
 - Raw array (Because the size is inconstant)
 
 ### Usage
@@ -34,39 +37,39 @@ auto data = minimal_serializer::serialize(value);
 
 ```cpp
 int value;
-std::vector<uint8_t> data{...};
+minimal_serializer::serialized_data<int> data{...};
 minimal_serializer::deserialize(value, data);
 ```
 
 #### Get Serialized Size
 
 ```cpp
-int32_t value=0;
-size_t size = minimal_serializer::get_serialized_size(value);
+size_t size = minimal_serializer::serialized_size_v<int32_t>;
 ```
 
-The size is always same if the type is same.
+The size is calculated in compile time and always same if the type is same.
 
 ### Serialize Custom Type
 
 To make custom type serializable, there are two ways as below.
 The type must be a trivial type.
 
-#### Intrusive Way: Define on_serialize(serializer&) Member Function
+#### Intrusive Way: Define serialize_targets as Public Member Alias
+
+This is convenience when you want to serialize private member variables of your custom classes or structs.
 
 ```cpp
 struct Data{
     int32_t value1;
     uint8_t value2;
 
-    static void on_serialize(Data obj, serializer& serializer){
-        serializer += obj.value1;
-        serializer += obj.value2;
-    }
+    using serialize_targets = minimal_serializer::serialize_target_container<&Data::value1, &Data::value2>;
 };
 ```
 
-#### Non Intrusive Way: Define on_serialize(T& value, serializer&) Global Function
+#### Non Intrusive Way: Define template specification of serialize_targets class template
+
+This is convenience when you want to serialize pre-defined classes or structs of other libraries.
 
 ```cpp
 struct Data{
@@ -74,9 +77,11 @@ struct Data{
     uint8_t value2;
 };
 
-void on_serialize(Data& data, serializer& serializer){
-    serializer += data.value1;
-    serializer += data.value2;
+namespace minimal_serializer {
+    template<>
+    struct serialize_targets<Data> {
+        using type = minimal_serializer::serialize_target_container<&Data::value1, &Data::value2>;
+    }
 }
 ```
 

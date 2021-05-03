@@ -7,6 +7,7 @@
 A C++ and C# binary serializer which serializes data without any extra data.
 
 - Minimal size without metadata
+- Extremely fast in C++ version!
 - Portable between C++ and C#
 - Portable between different machines
 - Serialized size is always same and predictable if type is same
@@ -35,28 +36,25 @@ struct Data {
     std::array<int64_t, 16> array;
     minimal_serializer::fixed_string<32> string;
 
-    // Intrusive definition of serialize information
-    static void on_serialize(Data& obj, serializer& serializer){
-        serializer += obj.value;
-        serializer += obj.array;
-        serializer += obj.string;
-    }
+    // Intrusive definition of serialize targets
+    using serialize_targets = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>;
 }
 
 // Not intrusive definition is also available
-void on_serialize(Data data, serializer& serializer){
-    serializer += data.value;
-    serializer += data.array;
-    serializer += data.string;
+namespace minimal_serializer {
+    template<>
+    struct serialize_targets<Data> {
+        using type = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>;
+    }
 }
 
 int main(){
-    // Get serialized size. The size is always same is typpe is same
-    auto size = minimal_serializer::get_serialized_size<Data>();
-    // Serialize to std::vector<uint8_t>
+    // Get serialized size. The size is calculated in compile time
+    auto size = minimal_serializer::serialized_size_v<Data>;
+    // Serialize to minimal_serializer::serialized_data<T>, which is std::array<uint8_t, minimal_serializer::serialized_size_v<T>>
     Data data;
     auto byte_array = minimal_serializer::serialize(data);
-    // Deserialize from std::vector<uint8_t>
+    // Deserialize from minimal_serializer::serialized_data
     minimal_serializer::serialize(data, byte_array);
 }
 ```
@@ -84,7 +82,7 @@ public class Main {
         var data = new Data();
         var byteArray = CdecPGL.MinimalSerializer.Serializer.Serialize(data);
         // Deserialize from byte[]
-        data = CdecPGL.MinimalSerializer.Serializer.Deerialize(byteArray);
+        data = CdecPGL.MinimalSerializer.Serializer.Deserialize(byteArray);
     }
 }
 ```

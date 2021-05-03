@@ -42,13 +42,6 @@ struct Data {
 		& array;
 	}
 
-	static void on_serialize(Data& obj, minimal_serializer::serializer_legacy& serializer) {
-		serializer += obj.boolean;
-		serializer += obj.unsigned_number;
-		serializer += obj.number;
-		serializer += obj.array;
-	}
-
 	using serialize_targets = minimal_serializer::serialize_targets_container<&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
 };
 BOOST_CLASS_IMPLEMENTATION(Data, boost::serialization::object_serializable);
@@ -58,11 +51,80 @@ struct Data2 {
 	uint32_t unsigned_number;
 	int64_t number;
 	std::array<int32_t, 16> array;
+	Data data;
+
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version) {
+		ar& boolean
+			& unsigned_number
+			& number
+			& array
+			& data;
+	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&Data2::boolean, &Data2::unsigned_number, &Data2::number, &Data2::array, &Data2::data>;
+};
+BOOST_CLASS_IMPLEMENTATION(Data2, boost::serialization::object_serializable);
+
+struct Data3 {
+	bool boolean;
+	uint32_t unsigned_number;
+	int64_t number;
+	std::array<int32_t, 16> array;
+	Data2 data2;
+
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version) {
+		ar& boolean
+			& unsigned_number
+			& number
+			& array
+			& data2;
+	}
+
+	using serialize_targets = minimal_serializer::serialize_targets_container<&Data3::boolean, &Data3::unsigned_number, &Data3::number, &Data3::array, &Data3::data2>;
+};
+BOOST_CLASS_IMPLEMENTATION(Data3, boost::serialization::object_serializable);
+
+
+struct DataC {
+	bool boolean;
+	uint32_t unsigned_number;
+	int64_t number;
+	std::array<int32_t, 16> array;
 
 	template<class Archive>
 	void serialize(Archive& archive)
 	{
 		archive(boolean, unsigned_number, number, array);
+	}
+};
+
+struct DataC2 {
+	bool boolean;
+	uint32_t unsigned_number;
+	int64_t number;
+	std::array<int32_t, 16> array;
+	DataC data;
+
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(boolean, unsigned_number, number, array, data);
+	}
+};
+
+struct DataC3 {
+	bool boolean;
+	uint32_t unsigned_number;
+	int64_t number;
+	std::array<int32_t, 16> array;
+	DataC2 data2;
+
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(boolean, unsigned_number, number, array, data2);
 	}
 };
 
@@ -151,7 +213,7 @@ void minimal_serialized_size(const T& data)
 void size_benchmark()
 {
 	const Data data{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
-	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+	const DataC data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
 
 	boost_binary_serialized_size(data);
 	cereal_binary_serialized_size(data2);
@@ -292,13 +354,17 @@ void minimal_serializer_speed(const T& data, const int iteration)
 void speed_benchmark()
 {
 	const Data data{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
-	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, data };
+	const Data3 data3{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, data2 };
+	const DataC datac{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+	const DataC2 datac2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, datac };
+	const DataC3 datac3{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, datac2 };
 
 	constexpr auto iterations = 1000000;
-	//boost_binary_serializer_speed(data, iterations);
-	//cereal_binary_serializer_speed(data2, iterations);
-	cereal_portable_binary_serializer_speed(data2, iterations);
-	minimal_serializer_speed(data, iterations);
+	//boost_binary_serializer_speed(data3, iterations);
+	//cereal_binary_serializer_speed(datac3, iterations);
+	//cereal_portable_binary_serializer_speed(datac3, iterations);
+	minimal_serializer_speed(data3, iterations);
 }
 
 int main() {
