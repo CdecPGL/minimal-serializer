@@ -92,7 +92,9 @@ public class Main {
 ### C++
 
 - A compiler which is compatible with C++17 (VC++15.7, g++7 or clang5)
-- Boost Library 1.67 or higher
+- Boost Library
+  - Minimal Support: 1.67 or higher
+  - Float Type Support: 1.74 or higher
 - nameof C++ (this is included in this repository)
 
 #### Tested Compilers

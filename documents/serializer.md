@@ -7,6 +7,7 @@
 Types whose size is defined in compile time are supported.
 
 - Size Defined Integer Types: int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
+- Float Types: float, double (**Boost Library 1.74.0 or higher is required**)
 - Boolean Type
 - Static Containers: std::array, std::tuple
 - Enum Types: enum, enum class, enum struct
@@ -18,7 +19,6 @@ Types whose size is defined in compile time are supported.
 Types whose size is different in each environment or will be change dynamically are not supported.
 
 - Size Undefined Integer Types: char, int, long, etc. (Because some of types has different size in different environment. It may not occur errors but it may not works well)
-- Float Types: float, double, etc. (Due to boost::endian library. This will be available in future)
 - Not Trivial Custom Classes
 - Dynamic Containers: std::vector, std::map, std::string, etc.
 - std::string
@@ -106,6 +106,7 @@ minimal_serializer::fixed_string<16> ng_japanese = u8"おはようございま�
 ### Available Types
 
 - Integer Types: sbyte, ubyte, short, ushort, int, uint, long, ulong
+- Float Types: float, double
 - Boolean Type
 - Raw Array with FixedLength attribute
 - Enum Types
@@ -116,7 +117,6 @@ minimal_serializer::fixed_string<16> ng_japanese = u8"おはようございま�
 
 Types whose size will be change dynamically or layout is not constant are not supported.
 
-- Float Types: float, double, etc. (Due to minimal_serializer_cpp restriction. This will be available in future)
 - Custom Structs or Classes whose StructLayout is not LayoutKind.Sequential
 - Dynamic Containers: List, Dictionary, etc.
 - Raw array wichout FixedLength attribute
