@@ -18,8 +18,8 @@ Comparision of binary serializers for C++ and C#.
 |Library|C++|C#|Minimal Size (No Metadata)|Portable|Supported Type|
 |:---|:---|:---|:---|:---|:---|
 |Minimal Serializer|Yes|Yes|Yes|Yes|Fixed Size Types Only|
-|Boost Serializer|Yes|No|No|No|Almost All Types|
-|Cereal|Yes|No|Yes|Yes|Almost All Types|
+|Boost Serializer (Binary)|Yes|No|No|No|Almost All Types|
+|Cereal (Binary)|Yes|No|Yes|Yes|Almost All Types|
 |C# Built-in Serializer (BinaryFormatter)|No|Yes|No|No|Almost All Types|
 
 ## Example
