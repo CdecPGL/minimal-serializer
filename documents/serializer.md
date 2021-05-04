@@ -9,20 +9,19 @@ Types whose size is defined in compile time are supported.
 - Size Defined Integer Types: int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
 - Float Types: float, double (**Beta. Boost Library 1.74.0 or higher is required**)
 - Boolean Type
-- Static Containers: std::array, std::tuple
+- Static Containers: std::array, std::tuple, std::pair
 - Enum Types: enum, enum class, enum struct
-- fixed_string
-- Trivial Custom Classes which has serialize targets definition
+- Fixed Length String: minimal_serializer::fixed_string
+- Trivial Custom Classes
 
 ### Not Available Types
 
 Types whose size is different in each environment or will be change dynamically are not supported.
 
 - Size Undefined Integer Types: char, int, long, etc. (Because some of types has different size in different environment. It may not occur errors but it may not works well)
+- Dynamic Containers: std::vector, std::map, std::string, raw array etc.
+- Dynamic String: std::string
 - Not Trivial Custom Classes
-- Dynamic Containers: std::vector, std::map, std::string, etc.
-- std::string
-- Raw array (Because the size is inconstant)
 
 ### Usage
 

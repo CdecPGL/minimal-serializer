@@ -192,6 +192,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="serialize_test.cpp" />
     <ClCompile Include="string_utility_test.cpp" />
+    <ClCompile Include="type_traits_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
