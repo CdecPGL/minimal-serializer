@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019 Cdec
+Copyright (c) 2019-2021 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -9,9 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 #pragma once
-
-#include <vector>
-#include <functional>
 
 #include <boost/endian/conversion.hpp>
 
@@ -22,25 +19,13 @@ namespace minimal_serializer {
 	class serialization_error final : public std::logic_error {
 		using logic_error::logic_error;
 	};
-
-	template <typename T>
-	T convert_endian_native_to_big(const T& value) {
-		return boost::endian::native_to_big(value);
-	}
-
-	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
-	template<>
-	inline bool convert_endian_native_to_big(const bool& value)
-	{
-		return value;
-	}
 	
 	template <typename T>
 	void convert_endian_native_to_big_inplace(T& value) {
 		boost::endian::native_to_big_inplace(value);
 	}
 
-	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
+	// @brief bool type is endian independent. In addition, bool type is not supported in boost endian conversion from boost library 1.71.0.
 	template<>
 	inline void convert_endian_native_to_big_inplace(bool& value) { }
 
@@ -52,172 +37,131 @@ namespace minimal_serializer {
 	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
 	template<>
 	inline void convert_endian_big_to_native_inplace(bool&) { }
-	
-	/* A function to raise error for not serializable type.
-	 * This function always fails static assertion and throws serialization_error in runtime.
-	 */
-	template <typename T, typename Return = void>
-	auto raise_error_for_not_serializable_type() -> std::enable_if_t<!is_serializable_v<T>, Return> {
+
+	template <typename T>
+	constexpr auto static_assertion_for_not_serializable_type() -> std::enable_if_t<!is_serializable_v<T>, void> {
 		static_assert(std::is_trivial_v<T>,
 			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
-		static_assert(has_member_on_serialize_v<T> || has_global_on_serialize_v<T>,
-			"There must be a static member function T::on_serialize(T&, serializer_legacy&) or a global function on_serialize(T&, serializer_legacy&) to serialize."
-		);
-		throw serialization_error("Not serializable type.");
+		static_assert(has_serialize_targets_definition_v<T>,
+			"There must be a member alias 'using serialize_targets = minimal_serializer::serialize_target_container<...>' or a template specification for minimal_serializer::serialize_target class template.");
 	}
 
-	/** A container to hold member variable pointer which are serialize target.
-	 */
-	template<auto T, auto... Ts>
-	class serialize_targets_container
-	{
-	public:
-		using ptr_types = std::tuple<decltype(T), decltype(Ts)...>;
-		const ptr_types ptrs = ptr_types(T, Ts...);
-		using types = std::tuple<member_variable_pointer_variable_t<T>, member_variable_pointer_variable_t<Ts>...>;
-		using class_type = member_variable_pointer_class_t<T>;
-		using const_reference_types = std::tuple<std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<T>>>, std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<Ts>>>...>;
-		using reference_types = std::tuple<std::add_lvalue_reference_t<member_variable_pointer_variable_t<T>>, std::add_lvalue_reference_t<member_variable_pointer_variable_t<Ts>>...>;
-
-		static const_reference_types get_const_reference_tuple(const class_type& obj)
-		{
-			return std::tie(obj.*T, obj.*Ts...);
-		}
-
-		static reference_types get_reference_tuple(class_type& obj)
-		{
-			return std::tie(obj.*T, obj.*Ts...);
-		}
-	};
-
-	
-	template <class T>
-	struct serialize_targets
-	{
-		using type = typename T::serialize_targets;
-	};
-
-	template <class T>
-	using serialize_targets_t = typename serialize_targets<T>::type;
-
-	template <class T>
-	struct optimized_serialize_targets_impl
-	{
-		using type = typename T::serialize_targets;
-	};
-
-	//template <class T,std::index_sequence<Is...> ,size_t... Is>
-	//struct optimized_serialize_targets_impl
-	//{
-	//	using type = typename T::serialize_targets;
-	//};
-	//
-	//template <class T>
-	//struct optimized_serialize_targets_impl
-	//{
-	//	const static auto ptrs = T::ptrs;
-	//	using ptr_types = T::ptr_types;
-	//	using type = optimized_serialize_targets_impl<T, std::make_index_sequence<std::tuple_size_v<ptr_types>>>;
-	//};
-	//
-	//template <class T>
-	//struct optimized_serialize_targets
-	//{
-	//	using type = typename optimized_serialize_targets_impl<T>::type;
-	//};
-	
-	template<class T>
-	constexpr size_t get_serialized_size_impl();
-	
-	template<typename T, size_t... I>
-	constexpr size_t serialized_size_tuple_impl(std::index_sequence<I...>)
-	{
-		return (get_serialized_size_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>()+...);
+	template <typename T, typename Return = void>
+	auto raise_error_for_not_serializable_type() -> std::enable_if_t<!is_serializable_v<T>, Return> {
+		static_assertion_for_not_serializable_type<T>();
+		throw serialization_error("Not serializable type.");
 	}
 	
 	template<typename T>
-	constexpr size_t serialized_size_tuple()
+	constexpr size_t get_serialized_size_impl();
+	
+	template<typename T, size_t... I>
+	constexpr size_t get_serialized_size_tuple_impl(std::index_sequence<I...>)
 	{
-		return serialized_size_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
+		return (get_serialized_size_impl<remove_cvref_t<std::tuple_element_t<I, T>>>()+...);
+	}
+	
+	template<typename T>
+	constexpr size_t get_serialized_size_tuple()
+	{
+		return get_serialized_size_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
 	}
 
-	template<class T>
+	template<typename T>
 	constexpr size_t get_serialized_size_impl()
 	{
-		if constexpr (std::is_arithmetic_v<T>) {
+		if constexpr (is_serializable_builtin_type_v<T>) {
 			return sizeof(T);
 		}
-		else if constexpr (std::is_enum_v<T>) {
+		else if constexpr (is_serializable_enum_v<T>) {
 			return sizeof(std::underlying_type_t<T>);
 		}
-		else if constexpr (is_tuple_like_v<T>) {
-			return serialized_size_tuple<T>();
+		else if constexpr (is_serializable_tuple_v<T>) {
+			return get_serialized_size_tuple<T>();
+		}
+		else if constexpr (is_serializable_custom_type_v<T>) {
+			using target_types = typename serialize_targets_t<T>::types;
+			return get_serialized_size_tuple<target_types>();
 		}
 		else {
-			using target_types = typename serialize_targets_t<T>::types;
-			return serialized_size_tuple<target_types>();
+			static_assertion_for_not_serializable_type<T>();
+			return 0;
 		}
 	}
 
-	template<class T>
-	struct serialized_size
-	{
-		const static size_t value = get_serialized_size_impl<T>();
-	};
+	/**
+	 * @brief The serialized size of T.
+	 */
+	template<typename T>
+	constexpr size_t serialized_size_v = get_serialized_size_impl<T>();
 
-	template<class T>
-	constexpr size_t serialized_size_v = serialized_size<T>::value;
-
-	template<class T>
+	/**
+	 * @brief A byte array of serialized data for T.
+	 */
+	template<typename T>
 	using serialized_data = std::array<uint8_t, serialized_size_v<T>>;
 
-	template<class T, class SerializedData>
+	template<typename T, typename SerializedData>
 	void serialize_impl(const T& obj, SerializedData& data, size_t& offset);
 	
-	template<typename T, class SerializedData, size_t I>
+	template<typename T, typename SerializedData, size_t I>
 	void serialize_tuple_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
-		serialize_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
+		serialize_impl<remove_cvref_t<std::tuple_element_t<I, T>>>(std::get<I>(obj), data, offset);
 	}
 	
-	template<typename T, class SerializedData, size_t... Is>
+	template<typename T, typename SerializedData, size_t... Is>
 	void serialize_tuple_impl(const T& obj, SerializedData& data, size_t& offset, std::index_sequence<Is...>)
 	{
 		(serialize_tuple_impl<T, SerializedData, Is>(obj, data, offset), ...);
 	}
 
-	template<typename T, class SerializedData>
+	template<typename T, typename SerializedData>
 	void serialize_tuple(const T& obj, SerializedData& data, size_t& offset)
 	{
 		serialize_tuple_impl<T>(obj, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
 	}
 
-	template<class T, class SerializedData>
+	template<typename T, typename SerializedData>
 	void serialize_impl(const T& obj, SerializedData& data, size_t& offset)
 	{
-		if constexpr (std::is_arithmetic_v<T>) {
+		if constexpr (is_serializable_builtin_type_v<T>) {
 			constexpr auto size = sizeof(T);
+			if(offset + size > std::tuple_size_v<SerializedData>) {
+				throw serialization_error("Serialization source is out of range.");
+			}
+		
 			uint8_t* data_ptr = data.data() + offset;
 			std::memcpy(data_ptr, &obj, size);
 			auto& e_value = *reinterpret_cast<T*>(data_ptr);
 			convert_endian_native_to_big_inplace(e_value);
 			offset += size;
 		}
-		else if constexpr (std::is_enum_v<T>) {
+		else if constexpr (is_serializable_enum_v<T>) {
 			using underlying_type = std::underlying_type_t<T>;
 			serialize_impl<underlying_type>(static_cast<underlying_type>(obj), data, offset);
 		}
-		else if constexpr (is_tuple_like_v<T>) {
+		else if constexpr (is_serializable_tuple_v<T>) {
 			serialize_tuple<T>(obj, data, offset);
 		}
-		else {
+		else if constexpr (is_serializable_custom_type_v<T>) {
 			using target_types = typename serialize_targets_t<T>::const_reference_types;
 			const auto target_references = serialize_targets_t<T>::get_const_reference_tuple(obj);
 			serialize_tuple<target_types>(target_references, data, offset);
 		}
+		else {
+			raise_error_for_not_serializable_type<T>();
+		}
 	}
 
-	template<class T>
+	/**
+	 * @brief Serialize data.
+	 * @param obj A object to serialize.
+	 * @tparam T The type of data to serialize.
+	 * @return A serialized byte array.
+	 * @throw serialization_error Serialization is failed.
+	 */
+	template<typename T>
 	serialized_data<T> serialize(const T& obj)
 	{
 		size_t offset = 0;
@@ -226,305 +170,69 @@ namespace minimal_serializer {
 		return data;
 	}
 
-	template<class T, class SerializedData>
+	template<typename T, typename SerializedData>
 	void deserialize_impl(T& obj, const SerializedData& data, size_t& offset);
 
-	template<typename T, class SerializedData, size_t I>
+	template<typename T, typename SerializedData, size_t I>
 	void deserialize_tuple_impl(T& obj, const SerializedData& data, size_t& offset)
 	{
-		deserialize_impl<std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<I, T>>>>(std::get<I>(obj), data, offset);
+		deserialize_impl<remove_cvref_t<std::tuple_element_t<I, T>>>(std::get<I>(obj), data, offset);
 	}
 
-	template<typename T, class SerializedData, size_t... Is>
+	template<typename T, typename SerializedData, size_t... Is>
 	void deserialize_tuple_impl(T& obj, const SerializedData& data, size_t& offset, std::index_sequence<Is...>)
 	{
 		(deserialize_tuple_impl<T, SerializedData, Is>(obj, data, offset), ...);
 	}
 
-	template<typename T, class SerializedData>
+	template<typename T, typename SerializedData>
 	void deserialize_tuple(T& obj, const SerializedData& data, size_t& offset)
 	{
 		deserialize_tuple_impl<T>(obj, data, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
 	}
 	
-	template<class T, class SerializedData>
+	template<class T, typename SerializedData>
 	void deserialize_impl(T& obj, const SerializedData& data, size_t& offset)
 	{
-		if constexpr (std::is_arithmetic_v<T>) {
+		if constexpr (is_serializable_builtin_type_v<T>) {
 			const auto size = sizeof(T);
+			if(offset + size > std::tuple_size_v<SerializedData>) {
+				throw serialization_error("Deserialization destination is out of range.");
+			}
+			
 			std::memcpy(&obj, data.data() + offset, size);
 			convert_endian_big_to_native_inplace(obj);
 			offset += size;
 		}
-		else if constexpr (std::is_enum_v<T>) {
+		else if constexpr (is_serializable_enum_v<T>) {
 			using underlying_type = std::underlying_type_t<T>;
 			// In order to cast with referencing same value, cast via pointer.
 			deserialize_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), data, offset);
 		}
-		else if constexpr (is_tuple_like_v<T>) {
+		else if constexpr (is_serializable_tuple_v<T>) {
 			deserialize_tuple<T>(obj, data, offset);
 		}
-		else {
+		else if constexpr (is_serializable_custom_type_v<T>) {
 			using target_types = typename serialize_targets_t<T>::reference_types;
 			auto target_references = serialize_targets_t<T>::get_reference_tuple(obj);
 			deserialize_tuple<target_types>(target_references, data, offset);
 		}
+		else {
+			raise_error_for_not_serializable_type<T>();
+		}
 	}
-	
-	template<class T>
+
+	/**
+	 * @brief Deserialize data.
+	 * @param obj A object to deserialize.
+	 * @param data A source byte array. 
+	 * @tparam T The type of data to deserialize.
+	 * @throw serialization_error Deserialization is failed.
+	 */
+	template<typename T>
 	void deserialize(T& obj, const serialized_data<T>& data)
 	{
 		size_t offset = 0;
 		deserialize_impl(obj, data, offset);
-	}
-	
-
-	class serializer_legacy final {
-	public:
-		
-		// Add a values as a serialization target. The type of the value must be trivial.
-		template <typename T>
-		auto operator +=(T& value) -> std::enable_if_t<is_serializable_v<T>> {
-			if (status_ == status::none) {
-				throw serialization_error(
-					"Cannot add serialization target out of serialization or deserialization process.");
-			}
-
-			if constexpr (std::is_arithmetic_v<T>) {
-				add_arithmetic_type_value(value);
-			} else if constexpr (std::is_enum_v<T>) {
-				add_enum_type_value(value);
-			} else if constexpr (is_fixed_array_container_v<T>) {
-				for (auto i = 0u; i < value.max_size(); ++i) {
-					*this += value[i];
-				}
-			} else {
-				on_serialize(value, *this);
-			}
-		}
-
-		template <typename T>
-		auto operator +=(T& value) -> std::enable_if_t<!is_serializable_v<T>> {
-			raise_error_for_not_serializable_type<T>();
-		}
-
-	private:
-		enum class status { none, serializing, deserializing, size_estimating };
-
-		status status_{status::none};
-		std::vector<std::function<void(size_t&)>> size_estimators_;
-		std::vector<std::function<void(std::vector<uint8_t>&, size_t&)>> serializers_;
-		std::vector<std::function<void(const std::vector<uint8_t>&, size_t&)>> deserializers_;
-
-		template <typename T>
-		auto add_arithmetic_type_value(T& value) -> std::enable_if_t<std::is_arithmetic_v<T>> {
-			switch (status_) {
-				case status::serializing:
-					serializers_.push_back([&value](std::vector<uint8_t>& data, size_t& pos) {
-						auto e_value = convert_endian_native_to_big(value);
-						const auto size = sizeof(T);
-						std::memcpy(data.data() + pos, &e_value, size);
-						pos += size;
-					});
-					break;
-				case status::deserializing:
-					deserializers_.push_back([&value](const std::vector<uint8_t>& data, size_t& pos) {
-						const auto size = sizeof(T);
-						std::memcpy(&value, data.data() + pos, size);
-						convert_endian_big_to_native_inplace(value);
-						pos += size;
-					});
-					break;
-				case status::size_estimating:
-					size_estimators_.push_back([](size_t& total_size) {
-						total_size += sizeof(T);
-					});
-					break;
-				default:
-					break;
-			}
-		}
-
-		template <typename T>
-		auto add_enum_type_value(T& value) -> std::enable_if_t<std::is_enum_v<T>> {
-			using base_t = std::underlying_type_t<T>;
-			switch (status_) {
-				case status::serializing:
-					serializers_.push_back([&value](std::vector<uint8_t>& data, size_t& pos) {
-						auto base_value = static_cast<base_t>(value);
-						auto e_value = convert_endian_native_to_big(base_value);
-						const auto size = sizeof(base_t);
-						std::memcpy(data.data() + pos, &e_value, size);
-						pos += size;
-					});
-					break;
-				case status::deserializing:
-					deserializers_.push_back([&value](const std::vector<uint8_t>& data, size_t& pos) {
-						const auto size = sizeof(base_t);
-						base_t base_value;
-						std::memcpy(&base_value, data.data() + pos, size);
-						convert_endian_big_to_native_inplace(base_value);
-						value = static_cast<T>(base_value);
-						pos += size;
-					});
-					break;
-				case status::size_estimating:
-					size_estimators_.push_back([](size_t& total_size) {
-						total_size += sizeof(base_t);
-					});
-					break;
-				default:
-					break;
-			}
-		}
-
-		template <typename T>
-		friend auto serialize_legacy(const T&) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>>;
-
-		template <typename T>
-		auto serialize(const T& target) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>> {
-			if (status_ != status::none) {
-				throw serialization_error("Cannot start serialization in serialization or deserialization progress.");
-			}
-
-			// Estimate  size
-			auto total_size = get_serialized_size<T>();
-
-			// Build serializers
-			serializers_.clear();
-			status_ = status::serializing;
-			T& nc_target = const_cast<T&>(target);
-			on_serialize(nc_target, *this);
-			status_ = status::none;
-
-			// Serialize
-			std::vector<uint8_t> data(total_size);
-			size_t pos = 0;
-			for (auto&& serializer : serializers_) {
-				serializer(data, pos);
-			}
-
-			return data;
-		}
-
-		template <typename T>
-		friend auto deserialize_legacy(T&, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>>;
-
-		template <typename T>
-		auto deserialize(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>> {
-			if (status_ != status::none) {
-				throw serialization_error("Cannot start serialization in serialization or deserialization process.");
-			}
-
-			// Estimate and check size
-			auto total_size = get_serialized_size<T>();
-			if (total_size != data.size()) {
-				const auto message = generate_string("The data size (", data.size(),
-					" bytes) does not match to the passed size (", total_size,
-					" bytes) for deserialization of the type (", typeid(target), ").");
-				throw serialization_error(message);
-			}
-
-			// Build deserializers
-			deserializers_.clear();
-			status_ = status::deserializing;
-			on_serialize(target, *this);
-			status_ = status::none;
-
-			// Deserialize
-			size_t pos = 0;
-			for (auto&& deserializer : deserializers_) {
-				deserializer(data, pos);
-			}
-		}
-
-		template <typename T>
-		friend auto get_serialized_size_legacy() -> std::enable_if_t<is_serializable_v<T>, size_t>;
-
-		template <typename T>
-		auto get_serialized_size() -> std::enable_if_t<is_serializable_v<T>, size_t> {
-			using non_cvref_t = remove_cvref_t<T>;
-
-			if (status_ != status::none) {
-				throw serialization_error(
-					"Cannot start get_serialized_size_legacy in serialization or deserialization progress.");
-			}
-
-			// Build size estimators
-			size_estimators_.clear();
-			status_ = status::size_estimating;
-			non_cvref_t target;
-			on_serialize(target, *this);
-			status_ = status::none;
-
-			// Estimate size
-			size_t total_size = 0;
-			for (auto&& size_estimators : size_estimators_) {
-				size_estimators(total_size);
-			}
-
-			return total_size;
-		}
-	};
-
-	template <typename T>
-	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<has_member_on_serialize_v<T>> {
-		static_assert(std::is_trivial_v<T>,
-			"T must be a trivial type because the serialize size of T must not be changed in runtime.");
-		static_assert(!std::is_const_v<T>,"T must not be const.");
-		T::on_serialize(value, serializer);
-	}
-
-	template <typename T>
-	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<std::is_arithmetic_v<T>> {
-		static_assert(!std::is_const_v<T>, "T must not be const.");
-		serializer += value;
-	}
-
-	template <typename T>
-	auto on_serialize(T& value, serializer_legacy& serializer) -> std::enable_if_t<std::is_enum_v<T>> {
-		static_assert(!std::is_const_v<T>, "T must not be const.");
-		serializer += value;
-	}
-
-	template <typename T, size_t V>
-	void on_serialize(std::array<T, V>& value, serializer_legacy& serializer) {
-		static_assert(!std::is_const_v<T>, "T must not be const.");
-		serializer += value;
-	}
-
-	// Serialize target to send data to a network
-	template <typename T>
-	auto serialize_legacy(const T& target) -> std::enable_if_t<is_serializable_v<T>, std::vector<uint8_t>> {
-		return serializer_legacy().serialize(target);
-	}
-
-	template <typename T>
-	auto serialize_legacy(const T& target) -> std::enable_if_t<!is_serializable_v<T>, std::vector<uint8_t>> {
-		return raise_error_for_not_serializable_type<T, std::vector<uint8_t>>();
-	}
-
-	// Deserialize data to get data from a network
-	template <typename T>
-	auto deserialize_legacy(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<is_serializable_v<T>> {
-		static_assert(!std::is_const_v<T>, "T must not be const.");
-		serializer_legacy().deserialize(target, data);
-	}
-
-	template <typename T>
-	auto deserialize_legacy(T& target, const std::vector<uint8_t>& data) -> std::enable_if_t<!is_serializable_v<T>> {
-		static_assert(!std::is_const_v<T>, "T must not be const.");
-		raise_error_for_not_serializable_type<T>();
-	}
-
-	// Get a serialized size of a type.
-	template <typename T>
-	auto get_serialized_size_legacy() -> std::enable_if_t<is_serializable_v<T>, size_t> {
-		return serializer_legacy().get_serialized_size<T>();
-	}
-
-	template <typename T>
-	auto get_serialized_size_legacy() -> std::enable_if_t<!is_serializable_v<T>, size_t> {
-		return raise_error_for_not_serializable_type<T, size_t>();
 	}
 }

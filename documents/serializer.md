@@ -7,7 +7,7 @@
 Types whose size is defined in compile time are supported.
 
 - Size Defined Integer Types: int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
-- Float Types: float, double (**Boost Library 1.74.0 or higher is required**)
+- Float Types: float, double (**Beta. Boost Library 1.74.0 or higher is required**)
 - Boolean Type
 - Static Containers: std::array, std::tuple
 - Enum Types: enum, enum class, enum struct

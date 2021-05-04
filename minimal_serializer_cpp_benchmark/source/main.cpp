@@ -42,7 +42,7 @@ struct Data {
 		& array;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_targets_container<&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
+	using serialize_targets = minimal_serializer::serialize_target_container<&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
 };
 BOOST_CLASS_IMPLEMENTATION(Data, boost::serialization::object_serializable);
 
@@ -62,7 +62,7 @@ struct Data2 {
 			& data;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_targets_container<&Data2::boolean, &Data2::unsigned_number, &Data2::number, &Data2::array, &Data2::data>;
+	using serialize_targets = minimal_serializer::serialize_target_container<&Data2::boolean, &Data2::unsigned_number, &Data2::number, &Data2::array, &Data2::data>;
 };
 BOOST_CLASS_IMPLEMENTATION(Data2, boost::serialization::object_serializable);
 
@@ -82,7 +82,7 @@ struct Data3 {
 			& data2;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_targets_container<&Data3::boolean, &Data3::unsigned_number, &Data3::number, &Data3::array, &Data3::data2>;
+	using serialize_targets = minimal_serializer::serialize_target_container<&Data3::boolean, &Data3::unsigned_number, &Data3::number, &Data3::array, &Data3::data2>;
 };
 BOOST_CLASS_IMPLEMENTATION(Data3, boost::serialization::object_serializable);
 

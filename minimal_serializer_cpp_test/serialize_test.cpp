@@ -23,11 +23,6 @@ struct simple_struct_member_serialize final {
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
 
-	static void on_serialize(simple_struct_member_serialize& obj, minimal_serializer::serializer_legacy& serializer) {
-		serializer += obj.value1;
-		serializer += obj.value2;
-	}
-
 	bool operator==(const simple_struct_member_serialize& other) const {
 		return value1 == other.value1 &&
 			value2 == other.value2;
@@ -40,7 +35,7 @@ struct simple_struct_member_serialize final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_targets_container<&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
+	using serialize_targets = minimal_serializer::serialize_target_container<&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
 };
 
 // 22 bytes
@@ -64,15 +59,10 @@ struct simple_struct_global_serialize final {
 };
 
 namespace minimal_serializer {
-	void on_serialize(simple_struct_global_serialize& data, minimal_serializer::serializer_legacy& serializer) {
-		serializer += data.value1;
-		serializer += data.value2;
-	}
-
 	template <>
 	struct serialize_targets<simple_struct_global_serialize>
 	{
-		using type = serialize_targets_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
+		using type = serialize_target_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
 	};
 }
 
@@ -86,15 +76,6 @@ struct nested_struct final {
 	std::array<uint32_t, 10> value4;
 	simple_struct_member_serialize value5;
 	simple_struct_global_serialize value6;
-
-	static void on_serialize(nested_struct& obj, minimal_serializer::serializer_legacy& serializer) {
-		serializer += obj.value1;
-		serializer += obj.value2;
-		serializer += obj.value3;
-		serializer += obj.value4;
-		serializer += obj.value5;
-		serializer += obj.value6;
-	}
 
 	bool operator==(const nested_struct& other) const {
 		return value1 == other.value1 &&
@@ -116,7 +97,7 @@ struct nested_struct final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_targets_container<&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &nested_struct::value5, &nested_struct::value6>;
+	using serialize_targets = minimal_serializer::serialize_target_container<&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &nested_struct::value5, &nested_struct::value6>;
 };
 
 enum test_enum { a, b, c };
