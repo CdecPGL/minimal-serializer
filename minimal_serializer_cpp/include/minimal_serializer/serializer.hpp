@@ -34,7 +34,7 @@ namespace minimal_serializer {
 		boost::endian::big_to_native_inplace(value);
 	}
 
-	// bool type is endian independent. IN addtion, bool type is not supported in boost endian conversion from boost library 1.71.0.
+	// bool type is endian independent. In addition, bool type is not supported in boost endian conversion from boost library 1.71.0.
 	template <>
 	inline void convert_endian_big_to_native_inplace(bool&) { }
 

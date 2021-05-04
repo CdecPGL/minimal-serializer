@@ -43,8 +43,8 @@ namespace minimal_serializer {
 	}
 
 	template <>
-	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& type_info) {
-		oss << type_info.name();
+	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& value) {
+		oss << value.name();
 	}
 
 	inline void generate_string_impl(std::ostringstream&) {}
