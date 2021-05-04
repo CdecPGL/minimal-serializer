@@ -170,4 +170,9 @@ You can create pull requests by below steps.
 
 ## License
 
-The codes in this repository are lisenced unfer the [MIT License](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE).
+The codes in this repository are lisenced unfer the [the MIT License](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE).
+
+This repogitory includes following libraries from other repogitories. The licenses of these codes follows each repogitories.
+
+- [nameof C++](https://github.com/Neargye/nameof) ([The MIT License](https://github.com/Neargye/nameof/blob/master/LICENSE))
+- [cereal](https://github.com/USCiLab/cereal) ([The 3-Clause BSD License](https://github.com/USCiLab/cereal/blob/master/LICENSE))
