@@ -53,7 +53,8 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_too_long_string) {
-		BOOST_CHECK_EXCEPTION(minimal_serializer::fixed_string<32>(u8"あああああああああああ"), std::out_of_range, [](auto) {return true; });
+		BOOST_CHECK_EXCEPTION(minimal_serializer::fixed_string<32>(u8"あああああああああああ"), std::out_of_range,
+							[](auto) {return true; });
 	}
 
 	BOOST_AUTO_TEST_CASE(test_copy_construct) {

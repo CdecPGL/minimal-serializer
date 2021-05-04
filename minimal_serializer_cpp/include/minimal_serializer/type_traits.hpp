@@ -21,12 +21,12 @@ namespace minimal_serializer {
 	template <typename T>
 	using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
-	struct is_tuple_like_impl final{
+	struct is_tuple_like_impl final {
 		template <typename T>
 		static auto check(T&& x) -> decltype(std::tuple_size<T>::value, std::true_type{});
 
 		template <typename T>
-		static auto check(...)->std::false_type;
+		static auto check(...) -> std::false_type;
 	};
 
 	/**
@@ -36,7 +36,7 @@ namespace minimal_serializer {
 	constexpr bool is_tuple_like_v = decltype(is_tuple_like_impl::check<T>(std::declval<T>()))::value;
 
 	template <typename C, typename V>
-	auto member_variable_pointer_t_impl(V C::* p)->std::pair<C, V>;
+	auto member_variable_pointer_t_impl(V C::* p) -> std::pair<C, V>;
 
 	/**
 	 * @brief A type of class indicated by member variable pointer.
@@ -49,31 +49,36 @@ namespace minimal_serializer {
 	 */
 	template <auto P>
 	using member_variable_pointer_variable_t = typename decltype(member_variable_pointer_t_impl(P))::second_type;
-	
+
 	/**
 	 * @brief A container to hold member variable pointer which are serialize target.
 	 * @tparam FirstPtr A member function pointer which is serialize target.
 	 * @tparam RestPtrs Member function pointers which are serialize target.
 	 */
-	template<auto FirstPtr, auto... RestPtrs>
-	class serialize_target_container final{
-		static_assert(std::is_member_object_pointer_v<decltype(FirstPtr)> && (std::is_member_object_pointer_v<decltype(RestPtrs)> && ...), "FirstPtr and RestPtrs must be member function pointer.");
-		static_assert((std::is_same_v<member_variable_pointer_class_t<FirstPtr>, member_variable_pointer_class_t<RestPtrs>> && ...), "All pointers must be in same class.");
+	template <auto FirstPtr, auto... RestPtrs>
+	class serialize_target_container final {
+		static_assert(std::is_member_object_pointer_v<decltype(FirstPtr)> && (std::is_member_object_pointer_v<decltype(
+			RestPtrs)> && ...), "FirstPtr and RestPtrs must be member function pointer.");
+		static_assert((std::is_same_v<member_variable_pointer_class_t<FirstPtr>, member_variable_pointer_class_t<
+										RestPtrs>> && ...), "All pointers must be in same class.");
 	public:
 		using ptr_types = std::tuple<decltype(FirstPtr), decltype(RestPtrs)...>;
 		const ptr_types ptrs = ptr_types(FirstPtr, RestPtrs...);
-		using types = std::tuple<member_variable_pointer_variable_t<FirstPtr>, member_variable_pointer_variable_t<RestPtrs>...>;
+		using types = std::tuple<member_variable_pointer_variable_t<FirstPtr>, member_variable_pointer_variable_t<
+									RestPtrs>...>;
 		using class_type = member_variable_pointer_class_t<FirstPtr>;
-		using const_reference_types = std::tuple<std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<FirstPtr>>>, std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<RestPtrs>>>...>;
-		using reference_types = std::tuple<std::add_lvalue_reference_t<member_variable_pointer_variable_t<FirstPtr>>, std::add_lvalue_reference_t<member_variable_pointer_variable_t<RestPtrs>>...>;
+		using const_reference_types = std::tuple<
+			std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<FirstPtr>>>,
+			std::add_lvalue_reference_t<std::add_const_t<member_variable_pointer_variable_t<RestPtrs>>>...>;
+		using reference_types = std::tuple<std::add_lvalue_reference_t<member_variable_pointer_variable_t<FirstPtr>>,
+											std::add_lvalue_reference_t<member_variable_pointer_variable_t<RestPtrs>>...
+		>;
 
-		static const_reference_types get_const_reference_tuple(const class_type& obj)
-		{
+		static const_reference_types get_const_reference_tuple(const class_type& obj) {
 			return std::tie(obj.*FirstPtr, obj.*RestPtrs...);
 		}
 
-		static reference_types get_reference_tuple(class_type& obj)
-		{
+		static reference_types get_reference_tuple(class_type& obj) {
 			return std::tie(obj.*FirstPtr, obj.*RestPtrs...);
 		}
 	};
@@ -83,8 +88,7 @@ namespace minimal_serializer {
 	 * @tparam T A target type.
 	 */
 	template <typename T>
-	struct serialize_targets
-	{
+	struct serialize_targets {
 		using type = typename T::serialize_targets;
 	};
 
@@ -92,18 +96,19 @@ namespace minimal_serializer {
 	using serialize_targets_t = typename serialize_targets<T>::type;
 
 	template <typename T>
-	struct is_serialize_target_container final: std::false_type{};
+	struct is_serialize_target_container final : std::false_type {};
 
 	struct has_serialize_targets_definition_impl final {
 		template <typename T>
 		static auto check(T&& x) -> decltype(std::declval<serialize_targets_t<T>>(), std::true_type{});
 
 		template <typename T>
-		static auto check(...)->std::false_type;
+		static auto check(...) -> std::false_type;
 	};
 
 	template <typename T>
-	constexpr bool has_serialize_targets_definition_v = decltype(has_serialize_targets_definition_impl::check<T>(std::declval<T>()))::value;
+	constexpr bool has_serialize_targets_definition_v = decltype(has_serialize_targets_definition_impl::check<T
+	>(std::declval<T>()))::value;
 
 	// float is available in boost.endian if Boost Library version >= 1.74.0
 	// TODO: Check the size of float is 32 bit and it of double is 64 bit

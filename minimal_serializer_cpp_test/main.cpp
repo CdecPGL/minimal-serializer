@@ -9,4 +9,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 #define BOOST_TEST_MODULE minimal_serializer_cpp_test
-#include <boost/test/unit_test.hpp> 
+#include <boost/test/unit_test.hpp>

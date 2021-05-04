@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "minimal_serializer/fixed_string.hpp"
 
 // 22 bytes
-struct simple_struct_member_serialize final {	
+struct simple_struct_member_serialize final {
 	const static size_t size = 22;
 
 	std::array<int32_t, 5> value1;
@@ -35,7 +35,8 @@ struct simple_struct_member_serialize final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
+	using serialize_targets = minimal_serializer::serialize_target_container<
+		&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
 };
 
 // 22 bytes
@@ -60,9 +61,9 @@ struct simple_struct_global_serialize final {
 
 namespace minimal_serializer {
 	template <>
-	struct serialize_targets<simple_struct_global_serialize>
-	{
-		using type = serialize_target_container<&simple_struct_global_serialize::value1, &simple_struct_global_serialize::value2>;
+	struct serialize_targets<simple_struct_global_serialize> {
+		using type = serialize_target_container<&simple_struct_global_serialize::value1, &
+												simple_struct_global_serialize::value2>;
 	};
 }
 
@@ -97,7 +98,9 @@ struct nested_struct final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &nested_struct::value5, &nested_struct::value6>;
+	using serialize_targets = minimal_serializer::serialize_target_container<
+		&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &
+		nested_struct::value5, &nested_struct::value6>;
 };
 
 enum test_enum { a, b, c };
@@ -108,10 +111,12 @@ template <typename T>
 auto get_default() -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
 	if constexpr (std::is_same_v<T, bool>) {
 		return true;
-	} else {
+	}
+	else {
 		if constexpr (std::is_signed_v<T>) {
 			return std::numeric_limits<T>::min() / 10;
-		} else {
+		}
+		else {
 			return std::numeric_limits<T>::max() / 10;
 		}
 	}
@@ -140,9 +145,9 @@ auto get_size() -> decltype(T::size, size_t{}) {
 BOOST_AUTO_TEST_SUITE(serialize_test)
 	// Tests for standard types
 	using test_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
-		int32_t, uint32_t, int64_t, uint64_t, bool,
-		test_enum, test_enum_class,
-		simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+										int32_t, uint32_t, int64_t, uint64_t, bool,
+										test_enum, test_enum_class,
+										simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_not_change, Test, test_types) {
 		const auto expected = get_default<Test>();
@@ -202,21 +207,27 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 
 	// Tests for std::tuple
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_tuple) {
-		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = {
+			-123, 23, true, "aiueo"
+		};
 		const auto actual = expected;
 		minimal_serializer::serialize(actual);
 		BOOST_CHECK(expected == actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_tuple) {
-		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = {
+			-123, 23, true, "aiueo"
+		};
 		auto data1 = minimal_serializer::serialize(expected);
 		auto data2 = minimal_serializer::serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_tuple) {
-		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = { -123, 23, true, "aiueo" };
+		const std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> expected = {
+			-123, 23, true, "aiueo"
+		};
 		std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>> actual{};
 		const auto data = minimal_serializer::serialize(expected);
 		minimal_serializer::deserialize(actual, data);
@@ -224,7 +235,8 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_size_tuple) {
-		constexpr auto size = minimal_serializer::serialized_size_v<std::tuple<int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>>>;
+		constexpr auto size = minimal_serializer::serialized_size_v<std::tuple<
+			int32_t, uint16_t, bool, minimal_serializer::fixed_string<8>>>;
 		BOOST_CHECK_EQUAL(sizeof(int32_t) + sizeof(uint16_t) + 1 + 8, size);
 	}
 

@@ -15,12 +15,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "minimal_serializer/type_traits.hpp"
 
-struct custom_struct final{};
+struct custom_struct final {};
 
-using tuple_like_types = boost::mpl::list<std::array<uint32_t, 24>, std::tuple<bool, int8_t, uint64_t>, std::pair<int8_t, bool>>;
+using tuple_like_types = boost::mpl::list<std::array<uint32_t, 24>, std::tuple<bool, int8_t, uint64_t>, std::pair<
+											int8_t, bool>>;
 
 using not_tuple_like_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
-	int32_t, uint32_t, int64_t, uint64_t, bool, custom_struct>;
+											int32_t, uint32_t, int64_t, uint64_t, bool, custom_struct>;
 
 BOOST_AUTO_TEST_SUITE(type_traits_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_is_tuple_like_true, Test, tuple_like_types) {

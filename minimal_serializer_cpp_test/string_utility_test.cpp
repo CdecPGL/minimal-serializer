@@ -39,16 +39,20 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_typeinfo_concatenation) {
-		BOOST_CHECK_EQUAL(std::string(typeid(int).name()) + typeid(bool).name(), minimal_serializer::generate_string(typeid(int), typeid(bool)));
+		BOOST_CHECK_EQUAL(std::string(typeid(int).name()) + typeid(bool).name(),
+						minimal_serializer::generate_string(typeid(int), typeid(bool)));
 	}
 
 	enum class test_enum { element1, element2 };
 
 	BOOST_AUTO_TEST_CASE(test_enum_concatenation) {
 		if constexpr (minimal_serializer::is_generate_enum_string_supported) {
-			BOOST_CHECK_EQUAL(u8"element1element2", minimal_serializer::generate_string(test_enum::element1, test_enum::element2));
-		} else {
-			BOOST_TEST_MESSAGE("Enum type values are not convertied to string because the feature is not supported in current compiler.");
+			BOOST_CHECK_EQUAL(u8"element1element2",
+							minimal_serializer::generate_string(test_enum::element1, test_enum::element2));
+		}
+		else {
+			BOOST_TEST_MESSAGE(
+				"Enum type values are not convertied to string because the feature is not supported in current compiler.");
 			BOOST_CHECK_EQUAL(u8"01", minimal_serializer::generate_string(test_enum::element1, test_enum::element2));
 		}
 	}
@@ -57,11 +61,15 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		// double is rounded by 6 digits
 		if constexpr (minimal_serializer::is_generate_enum_string_supported) {
 			BOOST_CHECK_EQUAL(u8"test1true0.230.888889element1",
-				minimal_serializer::generate_string("test", 1, true, 0.23, 0.8888888888, test_enum::element1));
-		} else {
-			BOOST_TEST_MESSAGE("Enum type values are not convertied to string because the feature is not supported in current compiler.");
+							minimal_serializer::generate_string("test", 1, true, 0.23, 0.8888888888, test_enum::element1
+							));
+		}
+		else {
+			BOOST_TEST_MESSAGE(
+				"Enum type values are not convertied to string because the feature is not supported in current compiler.");
 			BOOST_CHECK_EQUAL(u8"test1true0.230.8888890",
-				minimal_serializer::generate_string("test", 1, true, 0.23, 0.8888888888, test_enum::element1));
+							minimal_serializer::generate_string("test", 1, true, 0.23, 0.8888888888, test_enum::element1
+							));
 		}
 	}
 

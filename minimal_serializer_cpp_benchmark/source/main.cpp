@@ -35,15 +35,17 @@ struct Data {
 	std::array<int32_t, 16> array;
 
 	template <class Archive>
-	void serialize(Archive & ar, const unsigned int version) {
+	void serialize(Archive& ar, const unsigned int version) {
 		ar & boolean
-		& unsigned_number
-		& number
-		& array;
+			& unsigned_number
+			& number
+			& array;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
+	using serialize_targets = minimal_serializer::serialize_target_container<
+		&Data::boolean, &Data::unsigned_number, &Data::number, &Data::array>;
 };
+
 BOOST_CLASS_IMPLEMENTATION(Data, boost::serialization::object_serializable);
 
 struct Data2 {
@@ -55,15 +57,17 @@ struct Data2 {
 
 	template <class Archive>
 	void serialize(Archive& ar, const unsigned int version) {
-		ar& boolean
+		ar & boolean
 			& unsigned_number
 			& number
 			& array
 			& data;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<&Data2::boolean, &Data2::unsigned_number, &Data2::number, &Data2::array, &Data2::data>;
+	using serialize_targets = minimal_serializer::serialize_target_container<
+		&Data2::boolean, &Data2::unsigned_number, &Data2::number, &Data2::array, &Data2::data>;
 };
+
 BOOST_CLASS_IMPLEMENTATION(Data2, boost::serialization::object_serializable);
 
 struct Data3 {
@@ -75,15 +79,17 @@ struct Data3 {
 
 	template <class Archive>
 	void serialize(Archive& ar, const unsigned int version) {
-		ar& boolean
+		ar & boolean
 			& unsigned_number
 			& number
 			& array
 			& data2;
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<&Data3::boolean, &Data3::unsigned_number, &Data3::number, &Data3::array, &Data3::data2>;
+	using serialize_targets = minimal_serializer::serialize_target_container<
+		&Data3::boolean, &Data3::unsigned_number, &Data3::number, &Data3::array, &Data3::data2>;
 };
+
 BOOST_CLASS_IMPLEMENTATION(Data3, boost::serialization::object_serializable);
 
 
@@ -93,9 +99,8 @@ struct DataC {
 	int64_t number;
 	std::array<int32_t, 16> array;
 
-	template<class Archive>
-	void serialize(Archive& archive)
-	{
+	template <class Archive>
+	void serialize(Archive& archive) {
 		archive(boolean, unsigned_number, number, array);
 	}
 };
@@ -107,9 +112,8 @@ struct DataC2 {
 	std::array<int32_t, 16> array;
 	DataC data;
 
-	template<class Archive>
-	void serialize(Archive& archive)
-	{
+	template <class Archive>
+	void serialize(Archive& archive) {
 		archive(boolean, unsigned_number, number, array, data);
 	}
 };
@@ -121,16 +125,14 @@ struct DataC3 {
 	std::array<int32_t, 16> array;
 	DataC2 data2;
 
-	template<class Archive>
-	void serialize(Archive& archive)
-	{
+	template <class Archive>
+	void serialize(Archive& archive) {
 		archive(boolean, unsigned_number, number, array, data2);
 	}
 };
 
 template <typename T>
-void boost_binary_serialized_size(const T& data)
-{
+void boost_binary_serialized_size(const T& data) {
 	std::cout << "===Boost Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 	{
@@ -141,7 +143,8 @@ void boost_binary_serialized_size(const T& data)
 		boost::io::ios_flags_saver scout(std::cout);
 		std::cout << std::hex;
 		for (const auto c : byte_data.str()) {
-			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) << ',';
+			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) <<
+				',';
 		}
 		std::cout << std::endl;
 	}
@@ -151,8 +154,7 @@ void boost_binary_serialized_size(const T& data)
 }
 
 template <typename T>
-void cereal_binary_serialized_size(const T& data)
-{
+void cereal_binary_serialized_size(const T& data) {
 	std::cout << "===Cereal Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 	{
@@ -163,7 +165,8 @@ void cereal_binary_serialized_size(const T& data)
 		boost::io::ios_flags_saver scout(std::cout);
 		std::cout << std::hex;
 		for (const auto c : byte_data.str()) {
-			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) << ',';
+			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) <<
+				',';
 		}
 		std::cout << std::endl;
 	}
@@ -173,8 +176,7 @@ void cereal_binary_serialized_size(const T& data)
 }
 
 template <typename T>
-void cereal_portable_binary_serialized_size(const T& data)
-{
+void cereal_portable_binary_serialized_size(const T& data) {
 	std::cout << "===Cereal Portable Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 	{
@@ -185,7 +187,8 @@ void cereal_portable_binary_serialized_size(const T& data)
 		boost::io::ios_flags_saver scout(std::cout);
 		std::cout << std::hex;
 		for (const auto c : byte_data.str()) {
-			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) << ',';
+			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) <<
+				',';
 		}
 		std::cout << std::endl;
 	}
@@ -195,25 +198,24 @@ void cereal_portable_binary_serialized_size(const T& data)
 }
 
 template <typename T>
-void minimal_serialized_size(const T& data)
-{
+void minimal_serialized_size(const T& data) {
 	std::cout << "===Minimal Serializer===" << std::endl;
 	auto byte_data = minimal_serializer::serialize(data);
 	{
 		boost::io::ios_flags_saver scout(std::cout);
 		std::cout << std::hex;
 		for (const auto c : byte_data) {
-			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) << ',';
+			std::cout << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(static_cast<unsigned char>(c)) <<
+				',';
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "Size: " << byte_data.size() << " bytes." << std::endl;
 }
 
-void size_benchmark()
-{
-	const Data data{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
-	const DataC data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
+void size_benchmark() {
+	const Data data{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+	const DataC data2{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
 
 	boost_binary_serialized_size(data);
 	cereal_binary_serialized_size(data2);
@@ -222,8 +224,7 @@ void size_benchmark()
 }
 
 template <typename T>
-void boost_binary_serializer_speed(const T& data, const int iteration)
-{
+void boost_binary_serializer_speed(const T& data, const int iteration) {
 	std::cout << "===Boost Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 
@@ -255,8 +256,7 @@ void boost_binary_serializer_speed(const T& data, const int iteration)
 }
 
 template <typename T>
-void cereal_binary_serializer_speed(const T& data, const int iteration)
-{
+void cereal_binary_serializer_speed(const T& data, const int iteration) {
 	std::cout << "===Cereal Binary Serializer===" << std::endl;
 	std::ostringstream byte_data(std::ios::binary);
 
@@ -288,8 +288,7 @@ void cereal_binary_serializer_speed(const T& data, const int iteration)
 }
 
 template <typename T>
-void cereal_portable_binary_serializer_speed(const T& data, const int iteration)
-{
+void cereal_portable_binary_serializer_speed(const T& data, const int iteration) {
 	std::cout << "===Cereal Portable Binary Serializer===" << std::endl;
 
 	std::ostringstream byte_data(std::ios::binary);
@@ -321,8 +320,7 @@ void cereal_portable_binary_serializer_speed(const T& data, const int iteration)
 }
 
 template <typename T>
-void minimal_serializer_speed(const T& data, const int iteration)
-{
+void minimal_serializer_speed(const T& data, const int iteration) {
 	std::cout << "===Minimal Serializer===" << std::endl;
 
 	{
@@ -351,14 +349,13 @@ void minimal_serializer_speed(const T& data, const int iteration)
 	}
 }
 
-void speed_benchmark()
-{
-	const Data data{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
-	const Data2 data2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, data };
-	const Data3 data3{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, data2 };
-	const DataC datac{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15} };
-	const DataC2 datac2{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, datac };
-	const DataC3 datac3{ true, 123, -456, {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, datac2 };
+void speed_benchmark() {
+	const Data data{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+	const Data2 data2{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, data};
+	const Data3 data3{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, data2};
+	const DataC datac{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+	const DataC2 datac2{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, datac};
+	const DataC3 datac3{true, 123, -456, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, datac2};
 
 	constexpr auto iterations = 1000000;
 	//boost_binary_serializer_speed(data3, iterations);

@@ -26,17 +26,21 @@ namespace minimal_serializer {
 	 */
 	template <size_t Length>
 	class fixed_string final : boost::less_than_comparable<fixed_string<Length>>,
-		boost::equality_comparable<fixed_string<Length>> {
+								boost::equality_comparable<fixed_string<Length>> {
 	public:
 		constexpr fixed_string() = default;
 		constexpr fixed_string(const fixed_string& other) = default;
 		constexpr fixed_string(fixed_string&& other) = default;
 
+		/**
+		 * @brief A constructor from raw string.
+		 * @param c_str A raw string by char array.
+		 */
 		fixed_string(const char* c_str) {
 			const auto str_length = get_c_string_length(c_str);
 			if (str_length > Length) {
 				const auto message = generate_string("The length of string (", str_length, " exceeds defined length (",
-					Length, ")");
+													Length, ")");
 				throw std::out_of_range(message);
 			}
 
@@ -44,6 +48,10 @@ namespace minimal_serializer {
 			for (auto i = str_length; i < Length; ++i) data_[i] = 0;
 		}
 
+		/**
+		 * @brief A constructor from std::string.
+		 * @param str A string by std::string.
+		 */
 		constexpr fixed_string(const std::string& str) : fixed_string(str.c_str()) { }
 
 		~fixed_string() = default;
@@ -75,17 +83,26 @@ namespace minimal_serializer {
 			return data_.at(idx);
 		}
 
-		// Return actual string size
+		/**
+		 * @brief Get the actual size of the string without terminal character "\0". This is same as length().
+		 * @return The actual size of the string.
+		 */
 		[[nodiscard]] constexpr size_t size() const {
 			return data_[Length - 1] ? Length : get_c_string_length(reinterpret_cast<const char*>(data_.data()));
 		}
 
-		// Return actual string size
+		/**
+		 * @brief Get the actual size of the string without terminal character "\0". This is same as size().
+		 * @return The actual size of the string.
+		 */
 		[[nodiscard]] constexpr size_t length() const {
 			return size();
 		}
 
-		// Return max string size
+		/**
+		 * @brief Get the max size of this string class.
+		 * @return The max size of this string class.
+		 */
 		[[nodiscard]] constexpr size_t max_size() const {
 			return Length;
 		}
@@ -101,12 +118,12 @@ namespace minimal_serializer {
 			return std::string(reinterpret_cast<const char*>(data_.data()));
 		}
 
+	private:
+		std::array<uint8_t, Length> data_;
+
 		[[nodiscard]] constexpr static size_t get_c_string_length(const char* c_str) {
 			return *c_str ? 1 + get_c_string_length(c_str + 1) : 0;
 		}
-
-	private:
-		std::array<uint8_t, Length> data_;
 
 	public:
 		using serialize_targets = serialize_target_container<&fixed_string::data_>;
