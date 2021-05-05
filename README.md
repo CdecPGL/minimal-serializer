@@ -51,11 +51,35 @@ namespace minimal_serializer {
 int main(){
     // Get serialized size. The size is calculated in compile time
     auto size = minimal_serializer::serialized_size_v<Data>;
-    // Serialize to minimal_serializer::serialized_data<T>, which is std::array<uint8_t, minimal_serializer::serialized_size_v<T>>
+
+    // Serialize to fixed size byte array
     Data data;
     auto byte_array = minimal_serializer::serialize(data);
-    // Deserialize from minimal_serializer::serialized_data
-    minimal_serializer::serialize(data, byte_array);
+
+    // Serialize to buffer
+    std::vector<uint8_t> buffer1{...};
+    minimal_serializer::serialize(data, buffer);
+
+    // Serialize to buffer with offset
+    std::vector<uint8_t> buffer2{...};
+    minimal_serializer::serialize(data, buffer, 10);
+
+    // Serialize to output stream
+    std::ostream ostream{...};
+    minimal_serializer::serialize(data, ostream);
+
+    // Deserialize from fixed size byte array
+    minimal_serializer::deserialize(data, byte_array);
+
+    // Deserialize from buffer
+    minimal_serializer::deserialize(data, buffer1);
+
+    // Deserialize from buffer with offset
+    minimal_serializer::deserialize(data, buffer2, 10);
+
+    // Deserialize from input stream
+    std::istream istream{...};
+    minimal_serializer::deserialize(data, istream);
 }
 ```
 

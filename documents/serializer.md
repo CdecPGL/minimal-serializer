@@ -27,17 +27,66 @@ Types whose size is different in each environment or will be change dynamically 
 
 #### Serialize
 
+Simplest way is pass a object you want to serialize to `minimal_serializer::serialize()` function.
+The function returns serialized data by `std::array<uint8_t, S>` whose size `S` is serialized size.
+
 ```cpp
 int value;
-auto data = minimal_serializer::serialize(value);
+auto byte_array = minimal_serializer::serialize(value);
+```
+
+If you want to serialize a object to buffer you prepared, pass it to second parameter.
+
+The type of buffer must be have `data()` and `size()` as its member function and the element type of it must be `uint8_t` such as `std::array<uint8_t, S>` and `std::vector<uint8_t>`.
+
+```cpp
+int value;
+std::vector<uint8_t> buffer{...};
+minimal_serializer::serialize(value, buffer);
+```
+
+It is possible to indicate offset of the buffer where serialized data is written.
+
+```cpp
+int value;
+std::vector<uint8_t> buffer{...};
+minimal_serializer::serialize(value, buffer, 10);
+```
+
+Output stream can be also available.
+
+```cpp
+int value;
+std::ostream ostream{...};
+minimal_serializer::serialize(value, ostream);
 ```
 
 #### Deserialize
 
+Simplest way is pass a object you want to serialize and buffer which has serialzied data to `minimal_serializer::deserialize()` function.
+
+The type of buffer must be have `data()` and `size()` as its member function and the element type of it must be `uint8_t` such as `std::array<uint8_t, S>` and `std::vector<uint8_t>`.
+
 ```cpp
 int value;
-minimal_serializer::serialized_data<int> data{...};
-minimal_serializer::deserialize(value, data);
+std::vector<uint8_t> buffer{...};
+minimal_serializer::deserialize(value, buffer);
+```
+
+It is possible to indicate offset of the buffer where serialized data is written.
+
+```cpp
+int value;
+std::vector<uint8_t> buffer{...};
+minimal_serializer::deserialize(value, buffer, 10);
+```
+
+Input stream can be also available.
+
+```cpp
+int value;
+std::istream istream{...};
+minimal_serializer::deserialize(value, istream);
 ```
 
 #### Get Serialized Size

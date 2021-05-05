@@ -268,4 +268,37 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		BOOST_CHECK_EQUAL(16, size);
 	}
 
+	BOOST_AUTO_TEST_CASE(test_serialize_deserialize_offset) {
+		const uint64_t expected = 123456789;
+		std::vector<uint8_t> buffer(20);
+		minimal_serializer::serialize(expected, buffer, 12);
+		uint64_t actual = 0;
+		minimal_serializer::deserialize(actual, buffer, 12);
+		BOOST_CHECK_EQUAL(expected, actual);
+	}
+
+	BOOST_AUTO_TEST_CASE(test_serialize_offset_out_of_range) {
+		const uint64_t value = 0;
+		std::vector<uint8_t> buffer(20);
+		BOOST_CHECK_THROW(minimal_serializer::serialize(value, buffer, 13), minimal_serializer::serialization_error);
+	}
+
+	BOOST_AUTO_TEST_CASE(test_deserialize_offset_out_of_range) {
+		uint64_t value = 0;
+		const std::vector<uint8_t> buffer(20);
+		BOOST_CHECK_THROW(minimal_serializer::deserialize(value, buffer, 13), minimal_serializer::serialization_error);
+	}
+
+	BOOST_AUTO_TEST_CASE(test_serialize_deserialize_stream) {
+		const uint64_t expected = 123456789;
+		std::ostringstream ostream(std::ios::binary);
+		minimal_serializer::serialize(expected, ostream);
+		
+		uint64_t actual = 0;
+		std::istringstream istream(std::string(ostream.str().data(), ostream.str().size()), std::ios::binary);
+		minimal_serializer::deserialize(actual, istream);
+		
+		BOOST_CHECK_EQUAL(expected, actual);
+	}
+
 BOOST_AUTO_TEST_SUITE_END()
