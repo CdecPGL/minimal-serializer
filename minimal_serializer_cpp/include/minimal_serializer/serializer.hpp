@@ -27,7 +27,7 @@ namespace minimal_serializer {
 
 	// @brief bool type is endian independent. In addition, bool type is not supported in boost endian conversion from boost library 1.71.0.
 	template <>
-	inline void convert_endian_native_to_big_inplace(bool& value) { }
+	inline void convert_endian_native_to_big_inplace(bool&) { }
 
 	template <typename T>
 	void convert_endian_big_to_native_inplace(T& value) {
@@ -68,27 +68,28 @@ namespace minimal_serializer {
 
 	template <typename T>
 	constexpr size_t get_serialized_size_impl() {
-		if constexpr (is_serializable_builtin_type_v<T>) {
-			return sizeof(T);
+		using RawT = remove_cvref_t<T>;
+		if constexpr (is_serializable_builtin_type_v<RawT>) {
+			return sizeof(RawT);
 		}
-		else if constexpr (is_serializable_enum_v<T>) {
-			return sizeof(std::underlying_type_t<T>);
+		else if constexpr (is_serializable_enum_v<RawT>) {
+			return sizeof(std::underlying_type_t<RawT>);
 		}
-		else if constexpr (is_serializable_tuple_v<T>) {
-			return get_serialized_size_tuple<T>();
+		else if constexpr (is_serializable_tuple_v<RawT>) {
+			return get_serialized_size_tuple<RawT>();
 		}
-		else if constexpr (is_serializable_custom_type_v<T>) {
-			using target_types = typename serialize_targets_t<T>::types;
+		else if constexpr (is_serializable_custom_type_v<RawT>) {
+			using target_types = typename serialize_targets_t<RawT>::types;
 			return get_serialized_size_tuple<target_types>();
 		}
 		else {
-			static_assertion_for_not_serializable_type<T>();
+			static_assertion_for_not_serializable_type<RawT>();
 			return 0;
 		}
 	}
 
 	/**
-	 * @brief The serialized size of T.
+	 * @brief The serialized size of T. If T has const, volatile and/or reference, they will be removed.
 	 */
 	template <typename T>
 	constexpr size_t serialized_size_v = get_serialized_size_impl<T>();
