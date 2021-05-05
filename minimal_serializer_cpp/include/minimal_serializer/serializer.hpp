@@ -109,7 +109,8 @@ namespace minimal_serializer {
 	}
 
 	template <typename T, size_t... Is>
-	void serialize_tuple_impl(const T& obj, uint8_t* buffer_top, const size_t buffer_size, size_t& offset, std::index_sequence<Is...>) {
+	void serialize_tuple_impl(const T& obj, uint8_t* buffer_top, const size_t buffer_size, size_t& offset,
+							std::index_sequence<Is...>) {
 		(serialize_tuple_impl<T, Is>(obj, buffer_top, buffer_size, offset), ...);
 	}
 
@@ -175,7 +176,8 @@ namespace minimal_serializer {
 	 * @throw serialization_error Serialization is failed.
 	 */
 	template <typename T, typename Buffer>
-	auto serialize(const T& obj, Buffer& buffer, size_t offset) -> decltype(std::declval<Buffer>().data(), std::declval<Buffer>().size(), void()) {
+	auto serialize(const T& obj, Buffer& buffer,
+					size_t offset) -> decltype(std::declval<Buffer>().data(), std::declval<Buffer>().size(), void()) {
 		serialize_impl(obj, buffer.data(), buffer.size(), offset);
 	}
 
@@ -204,13 +206,15 @@ namespace minimal_serializer {
 	}
 
 	template <typename T, size_t... Is>
-	void deserialize_tuple_impl(T& obj, const uint8_t* buffer_top, const size_t buffer_size, size_t& offset, std::index_sequence<Is...>) {
+	void deserialize_tuple_impl(T& obj, const uint8_t* buffer_top, const size_t buffer_size, size_t& offset,
+								std::index_sequence<Is...>) {
 		(deserialize_tuple_impl<T, Is>(obj, buffer_top, buffer_size, offset), ...);
 	}
 
 	template <typename T>
 	void deserialize_tuple(T& obj, const uint8_t* buffer_top, const size_t buffer_size, size_t& offset) {
-		deserialize_tuple_impl<T>(obj, buffer_top, buffer_size, offset, std::make_index_sequence<std::tuple_size_v<T>>{});
+		deserialize_tuple_impl<T>(obj, buffer_top, buffer_size, offset,
+								std::make_index_sequence<std::tuple_size_v<T>>{});
 	}
 
 	template <class T>
@@ -228,7 +232,8 @@ namespace minimal_serializer {
 		else if constexpr (is_serializable_enum_v<T>) {
 			using underlying_type = std::underlying_type_t<T>;
 			// In order to cast with referencing same value, cast via pointer.
-			deserialize_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), buffer_top, buffer_size, offset);
+			deserialize_impl<underlying_type>(*reinterpret_cast<underlying_type*>(&obj), buffer_top, buffer_size,
+											offset);
 		}
 		else if constexpr (is_serializable_tuple_v<T>) {
 			deserialize_tuple<T>(obj, buffer_top, buffer_size, offset);
@@ -253,7 +258,9 @@ namespace minimal_serializer {
 	 * @throw serialization_error Deserialization is failed.
 	 */
 	template <typename T, typename Buffer>
-	auto deserialize(T& obj, const Buffer& buffer, size_t offset = 0) -> decltype(std::declval<Buffer>().data(), std::declval<Buffer>().size(), std::enable_if_t<!std::is_const_v<T>, void>()) {
+	auto deserialize(T& obj, const Buffer& buffer,
+					size_t offset = 0) -> decltype(std::declval<Buffer>().data(), std::declval<Buffer>().size(),
+		std::enable_if_t<!std::is_const_v<T>, void>()) {
 		deserialize_impl(obj, buffer.data(), buffer.size(), offset);
 	}
 
@@ -266,9 +273,9 @@ namespace minimal_serializer {
 	 * @throw serialization_error Deserialization is failed.
 	 */
 	template <typename T>
-	auto deserialize(T& obj, std::istream& stream)->std::enable_if_t<!std::is_const_v<T>, void>{
+	auto deserialize(T& obj, std::istream& stream) -> std::enable_if_t<!std::is_const_v<T>, void> {
 		serialized_data<T> buffer;
-		for(auto&& data : buffer) {
+		for (auto&& data : buffer) {
 			stream >> data;
 		}
 		deserialize(obj, buffer);

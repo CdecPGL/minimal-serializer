@@ -42,13 +42,15 @@ namespace minimal_serializer {
 	 * @brief A type of class indicated by member variable pointer.
 	 */
 	template <auto P>
-	using member_variable_pointer_class_t = typename decltype(minimal_serializer::member_variable_pointer_t_impl(P))::first_type;
+	using member_variable_pointer_class_t = typename decltype(minimal_serializer::member_variable_pointer_t_impl(P)
+	)::first_type;
 
 	/**
 	 * @brief A type of variable indicated by member variable pointer.
 	 */
 	template <auto P>
-	using member_variable_pointer_variable_t = typename decltype(minimal_serializer::member_variable_pointer_t_impl(P))::second_type;
+	using member_variable_pointer_variable_t = typename decltype(minimal_serializer::member_variable_pointer_t_impl(P)
+	)::second_type;
 
 	/**
 	 * @brief A container to hold member variable pointer which are serialize target.

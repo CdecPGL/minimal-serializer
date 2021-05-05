@@ -293,11 +293,11 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		const uint64_t expected = 123456789;
 		std::ostringstream ostream(std::ios::binary);
 		minimal_serializer::serialize(expected, ostream);
-		
+
 		uint64_t actual = 0;
 		std::istringstream istream(std::string(ostream.str().data(), ostream.str().size()), std::ios::binary);
 		minimal_serializer::deserialize(actual, istream);
-		
+
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
