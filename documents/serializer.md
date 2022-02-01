@@ -7,7 +7,8 @@
 Types whose size is defined in compile time are supported.
 
 - Size Defined Integer Types: int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
-- Float Types: float, double (**Beta. Boost Library 1.74.0 or higher is required**)
+- Float Types: float, double (Boost Library 1.74.0 or higher is required)
+  - **Systems whose `float` size is not 32 bit or `double` size is not 64 bit are not supported**
 - Boolean Type
 - Static Containers: std::array, std::tuple, std::pair
 - Enum Types: enum, enum class, enum struct
@@ -227,8 +228,8 @@ Because of this behavior of minimal-serializer, serialized data by minimal-seria
 |32bit Unsigned Integer|uint32_t|uint|
 |64bit Signed Integer|int64_t|long|
 |64bit Unsigned Integer|uint64_t|ulong|
-|32bit Floating Point Value|float (beta)|float|
-|64bit Floating Point Value|double (beta)|double|
+|32bit Floating Point Value|float|float|
+|64bit Floating Point Value|double|double|
 |Enum|enum, enum class|enum|
 |Static String|minimal_serializer::fixed_string|x (Supported in Future)|
 |Static String Field|minimal_serializer::fixed_string|string with `[FixedLength]`|

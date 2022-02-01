@@ -1,4 +1,4 @@
-FROM alpine:3.10.3
+FROM alpine:3.15.0
 LABEL maintainer="Cdec <cdecrement@gmail.com>"
 
 # Install basic requirements

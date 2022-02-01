@@ -144,10 +144,18 @@ auto get_size() -> decltype(T::size, size_t{}) {
 
 BOOST_AUTO_TEST_SUITE(serialize_test)
 	// Tests for standard types
+#if BOOST_VERSION >= 107400
 	using test_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
-										int32_t, uint32_t, int64_t, uint64_t, bool,
-										test_enum, test_enum_class,
-										simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+	int32_t, uint32_t, int64_t, uint64_t, bool,
+	float, double,
+	test_enum, test_enum_class,
+	simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+#else
+	using test_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
+	int32_t, uint32_t, int64_t, uint64_t, bool,
+	test_enum, test_enum_class,
+	simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+#endif
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_member_serialize_not_change, Test, test_types) {
 		const auto expected = get_default<Test>();
