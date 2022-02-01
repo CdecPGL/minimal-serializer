@@ -215,3 +215,37 @@ In deserialization, minimal-serializer converts all data to the endian the machi
 Because of this behavior of minimal-serializer, serialized data by minimal-serializer is deserializable in other machines.
 
 ***Please note that machines whose endian is nether big endian nor little endian is not supported.***
+
+## Type Support Table
+
+### Supported Types
+
+|Type|C++|C#|
+|:---|:---|:---|
+|Boolean|bool|bool|
+|32bit Signed Integer|int32_t|int|
+|32bit Unsigned Integer|uint32_t|uint|
+|64bit Signed Integer|int64_t|long|
+|64bit Unsigned Integer|uint64_t|ulong|
+|32bit Floating Point Value|float (beta)|float|
+|64bit Floating Point Value|double (beta)|double|
+|Enum|enum, enum class|enum|
+|Static String|minimal_serializer::fixed_string|x (Supported in Future)|
+|Static String Field|minimal_serializer::fixed_string|string with `[FixedLength]`|
+|Static Array|std::array, std::tuple, std::pair|x (Supported in Future)|
+|Static Array Field|std::array, std::tuple, std::pair|array with `[FixedLength]`|
+|Class|Trivial Classes|Classes with `[Serializable][StructLayout(LayoutKind.Sequential)]`|
+|Struct|Trivial Struct|Struct with `[Serializable]`|
+
+### Unsupported Types
+
+|Type|C++|C#|Future Support|
+|:---|:---|:---|:---:|
+|Char|char, signed char, unsigned char|char|x|
+|Platform Dependent Sized Integer|int, unsigned int, etc|nint, nuint|x|
+|Pointer|raw pointer, std:shared_ptr, etc|pointer|o|
+|Reference|Reference|-|o|
+|Dynamic String|std::string, raw string|string without `[FixedLength]`|x|
+|Dynamic Array|std::vector, std::list, etc|array without `[FixedLength]`|x|
+|Language Unique Types|-|decimal|x|
+|Union|union|-|x|
