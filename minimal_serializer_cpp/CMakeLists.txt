@@ -29,4 +29,4 @@ endif()
 
 # Install library
 install (TARGETS minimal_serializer_cpp LIBRARY DESTINATION lib)
-install (FILES includes DESTINATION include)
+install (DIRECTORY ${includes} DESTINATION include)
