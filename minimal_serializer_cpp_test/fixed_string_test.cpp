@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019 Cdec
+Copyright (c) 2019-2022 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -13,20 +13,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "minimal_serializer/fixed_string.hpp"
 
+// Test using string before C++17
 #if BOOST_CXX_VERSION < 202002L
 using string_t = std::string;
 template<std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_string<Length>;
 #else
+// Test using u8string in C++20
 using string_t = std::u8string;
 template<std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
 #endif
-
-std::ostream& operator <<(std::ostream& os, const std::u8string& str) {
-	os << reinterpret_cast<const char*>(str.c_str());
-	return os;
-}
 
 BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_alphabet) {
@@ -65,7 +62,7 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_bound_length_string) {
-		fixed_string_t<15>(u8"あああああ");
+		BOOST_CHECK(string_t(u8"あああああ") == fixed_string_t<15>(u8"あああああ").to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_too_long_string) {
