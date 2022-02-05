@@ -12,7 +12,7 @@ Types whose size is defined in compile time are supported.
 - Boolean Type
 - Static Containers: std::array, std::tuple, std::pair
 - Enum Types: enum, enum class, enum struct
-- Fixed Length String: minimal_serializer::fixed_string
+- Fixed Length String: minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)
 - Trivial Custom Classes
 
 ### Not Available Types
@@ -231,8 +231,8 @@ Because of this behavior of minimal-serializer, serialized data by minimal-seria
 |32bit Floating Point Value|float|float|
 |64bit Floating Point Value|double|double|
 |Enum|enum, enum class|enum|
-|Static String|minimal_serializer::fixed_string|x (Supported in Future)|
-|Static String Field|minimal_serializer::fixed_string|string with `[FixedLength]`|
+|Static String|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)|x (Supported in Future)|
+|Static String Field|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)|string with `[FixedLength]`|
 |Static Array|std::array, std::tuple, std::pair|x (Supported in Future)|
 |Static Array Field|std::array, std::tuple, std::pair|array with `[FixedLength]`|
 |Class|Trivial Classes|Classes with `[Serializable][StructLayout(LayoutKind.Sequential)]`|

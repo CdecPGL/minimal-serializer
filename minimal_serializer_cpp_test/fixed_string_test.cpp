@@ -9,88 +9,104 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 #include <boost/test/unit_test.hpp>
+#include <boost/config.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
+
+#if BOOST_CXX_VERSION < 202002L
+using string_t = std::string;
+template<std::size_t Length>
+using fixed_string_t = minimal_serializer::fixed_string<Length>;
+#else
+using string_t = std::u8string;
+template<std::size_t Length>
+using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
+#endif
+
+std::ostream& operator <<(std::ostream& os, const std::u8string& str) {
+	os << reinterpret_cast<const char*>(str.c_str());
+	return os;
+}
 
 BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_alphabet) {
 		const auto test = u8"ABCXYZ";
-		BOOST_CHECK_EQUAL(std::string(test), minimal_serializer::fixed_string<32>(test).to_string());
+		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_japanese) {
 		const auto test = u8"あいうえお蟹";
-		BOOST_CHECK_EQUAL(std::string(test), minimal_serializer::fixed_string<32>(test).to_string());
+		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_mixed) {
 		const auto test = u8"あいうABCえお蟹";
-		BOOST_CHECK_EQUAL(std::string(test), minimal_serializer::fixed_string<32>(test).to_string());
+		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_alphabet) {
-		const std::string test = u8"ABCXYZ";
-		BOOST_CHECK_EQUAL(test, minimal_serializer::fixed_string<32>(test).to_string());
+		const string_t test = u8"ABCXYZ";
+		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_japanese) {
-		const std::string test = u8"あいうえお蟹";
-		BOOST_CHECK_EQUAL(test, minimal_serializer::fixed_string<32>(test).to_string());
+		const string_t test = u8"あいうえお蟹";
+		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_mixed) {
-		const std::string test = u8"あいうABCえお蟹";
-		BOOST_CHECK_EQUAL(test, minimal_serializer::fixed_string<32>(test).to_string());
+		const string_t test = u8"あいうABCえお蟹";
+		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_empty) {
-		const std::string test{};
-		BOOST_CHECK_EQUAL(test, minimal_serializer::fixed_string<32>(test).to_string());
+		const string_t test{};
+		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_bound_length_string) {
-		minimal_serializer::fixed_string<15>(u8"あああああ");
+		fixed_string_t<15>(u8"あああああ");
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_too_long_string) {
-		BOOST_CHECK_EXCEPTION(minimal_serializer::fixed_string<32>(u8"あああああああああああ"), std::out_of_range,
+		BOOST_CHECK_EXCEPTION(fixed_string_t<32>(u8"あああああああああああ"), std::out_of_range,
 							[](auto) {return true; });
 	}
 
 	BOOST_AUTO_TEST_CASE(test_copy_construct) {
-		const std::string test = u8"かきくけこ";
-		const minimal_serializer::fixed_string<32> original(test);
+		const string_t test = u8"かきくけこ";
+		const fixed_string_t<32> original(test);
 		const auto copied(original);
-		BOOST_CHECK_EQUAL(test, original.to_string());
-		BOOST_CHECK_EQUAL(test, copied.to_string());
+		BOOST_CHECK(test == original.to_string());
+		BOOST_CHECK(test == copied.to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_copy_operator) {
-		const std::string test = u8"かきくけこ";
-		const minimal_serializer::fixed_string<32> original(test);
-		minimal_serializer::fixed_string<32> copied;
+		const string_t test = u8"かきくけこ";
+		const fixed_string_t<32> original(test);
+		fixed_string_t<32> copied;
 		copied = original;
-		BOOST_CHECK_EQUAL(test, original.to_string());
-		BOOST_CHECK_EQUAL(test, copied.to_string());
+		BOOST_CHECK(test == original.to_string());
+		BOOST_CHECK(test == copied.to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_indexer_start) {
-		const minimal_serializer::fixed_string<4> test(u8"abcd");
-		BOOST_CHECK_EQUAL(test[0], u8'a');
+		const fixed_string_t<4> test(u8"abcd");
+		BOOST_CHECK(test[0] == u8'a');
 	}
 
 	BOOST_AUTO_TEST_CASE(test_indexer_middle) {
-		const minimal_serializer::fixed_string<4> test(u8"abcd");
-		BOOST_CHECK_EQUAL(test[1], u8'b');
+		const fixed_string_t<4> test(u8"abcd");
+		BOOST_CHECK(test[1] == u8'b');
 	}
 
 	BOOST_AUTO_TEST_CASE(test_indexer_end) {
-		const minimal_serializer::fixed_string<4> test(u8"abcd");
-		BOOST_CHECK_EQUAL(test[3], u8'd');
+		const fixed_string_t<4> test(u8"abcd");
+		BOOST_CHECK(test[3] == u8'd');
 	}
 
 	BOOST_AUTO_TEST_CASE(test_at_out_of_range) {
-		const minimal_serializer::fixed_string<4> test(u8"abcd");
+		const fixed_string_t<4> test(u8"abcd");
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4834)
@@ -112,57 +128,57 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_less_than_operator_true) {
-		const minimal_serializer::fixed_string<4> small(u8"abcd");
-		const minimal_serializer::fixed_string<4> big(u8"abda");
+		const fixed_string_t<4> small(u8"abcd");
+		const fixed_string_t<4> big(u8"abda");
 		BOOST_CHECK(small < big);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_less_than_operator_false) {
-		const minimal_serializer::fixed_string<4> small(u8"abcd");
-		const minimal_serializer::fixed_string<4> big(u8"abda");
+		const fixed_string_t<4> small(u8"abcd");
+		const fixed_string_t<4> big(u8"abda");
 		BOOST_CHECK(!(big < small));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_less_than_operator_same) {
-		const minimal_serializer::fixed_string<4> test1(u8"abcd");
-		const minimal_serializer::fixed_string<4> test2(u8"abcd");
+		const fixed_string_t<4> test1(u8"abcd");
+		const fixed_string_t<4> test2(u8"abcd");
 		BOOST_CHECK(!(test1 < test2));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_equal_operator_true) {
-		const minimal_serializer::fixed_string<4> test1(u8"abcd");
-		const minimal_serializer::fixed_string<4> test2(u8"abcd");
+		const fixed_string_t<4> test1(u8"abcd");
+		const fixed_string_t<4> test2(u8"abcd");
 		BOOST_CHECK(test1 == test2);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_equal_operator_false) {
-		const minimal_serializer::fixed_string<4> test1(u8"abcd");
-		const minimal_serializer::fixed_string<4> test2(u8"abdd");
+		const fixed_string_t<4> test1(u8"abcd");
+		const fixed_string_t<4> test2(u8"abdd");
 		BOOST_CHECK(!(test1 == test2));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_size_zero) {
-		const minimal_serializer::fixed_string<32> test1{};
+		const fixed_string_t<32> test1{};
 		BOOST_CHECK_EQUAL(0, test1.size());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_size_alphabet) {
-		const minimal_serializer::fixed_string<32> test1(u8"abcdefg");
+		const fixed_string_t<32> test1(u8"abcdefg");
 		BOOST_CHECK_EQUAL(7, test1.size());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_size_alphabet_bound) {
-		const minimal_serializer::fixed_string<7> test1(u8"abcdefg");
+		const fixed_string_t<7> test1(u8"abcdefg");
 		BOOST_CHECK_EQUAL(7, test1.size());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_size_japanese) {
-		const minimal_serializer::fixed_string<32> test1(u8"さしすせそ");
+		const fixed_string_t<32> test1(u8"さしすせそ");
 		BOOST_CHECK_EQUAL(15, test1.size());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_size_japanese_bound) {
-		const minimal_serializer::fixed_string<15> test1(u8"さしすせそ");
+		const fixed_string_t<15> test1(u8"さしすせそ");
 		BOOST_CHECK_EQUAL(15, test1.size());
 	}
 

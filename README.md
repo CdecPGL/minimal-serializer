@@ -35,22 +35,23 @@ struct Data {
     uint32_t value;
     std::array<int64_t, 16> array;
     minimal_serializer::fixed_string<32> string;
+    minimal_serializer::fixed_u8string<32> u8string; // C++20
 
     // Intrusive definition of serialize targets
-    using serialize_targets = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>;
+    using serialize_targets = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>, &Data::u8string>;
 }
 
 // Not intrusive definition is also available
 namespace minimal_serializer {
     template<>
     struct serialize_targets<Data> {
-        using type = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>;
+        using type = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string, &Data::u8string>;
     }
 }
 
 int main(){
     // Get serialized size. The size is calculated in compile time
-    auto size = minimal_serializer::serialized_size_v<Data>;
+    constexpr auto size = minimal_serializer::serialized_size_v<Data>;
 
     // Serialize to fixed size byte array
     Data data;
@@ -80,6 +81,15 @@ int main(){
     // Deserialize from input stream
     std::istream istream{...};
     minimal_serializer::deserialize(data, istream);
+
+    // Get a flag representing the type is serializable, which is judged in compile time.
+    constexpr auto is_serializable = minimal_serializer::is_serializable_v<Data>;
+
+    // (C++20) A concept to constrain types to serializable with minimal serializer.
+    template<minimal_serializer::serializable T>
+    void func(T data) {
+        // Awesome codes...
+    }
 }
 ```
 
@@ -115,21 +125,23 @@ public class Main {
 
 ### C++
 
-- A compiler which is compatible with C++17 (VC++15.7, g++7 or clang5)
+- A compiler which is compatible with C++17 (VS15.7, g++7 or clang5)
+  - Concepts and the UTF-8 string type are supported in compilers which is compatible with C++20
 - Boost Library
   - Minimal Support: 1.67 or higher
-  - Float Type Support: 1.74 or higher
+  - Floating Point Number Type Support: 1.74 or higher
+  - C++20 Support: 1.77 or higher
 - nameof C++ (this is included in this repository)
 
 #### Tested Compilers
 
-- g++ 8.3.0
-- Clang 8.0.0
-- MSVC 14.6.2
+- g++ 10.3.1
+- Clang 12.0.1
+- MSVC 14.30 (VS 17.0.2)
 
 ### C#
 
-- .NET FrameWork or .NET Core wich is compatible with .NET Standard 2.0
+- .NET FrameWork or .NET Core which is compatible with .NET Standard 2.0
 
 ## Install
 
