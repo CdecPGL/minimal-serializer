@@ -8,7 +8,7 @@
 // Test using string before C++17
 #if BOOST_CXX_VERSION < 202002L
 template<std::size_t Length>
-using fixed_string_t = fixed_string<Length>;
+using fixed_string_t = minimal_serializer::fixed_string<Length>;
 #else
 // Test using u8string in C++20
 template <std::size_t Length>
