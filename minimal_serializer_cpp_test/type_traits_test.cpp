@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "minimal_serializer/type_traits.hpp"
 
+#include "serialize_test_types.hpp"
+
 using namespace std;
 using namespace minimal_serializer;
 
@@ -34,5 +36,15 @@ BOOST_AUTO_TEST_SUITE(type_traits_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_is_tuple_like_false, Test, not_tuple_like_types) {
 		BOOST_CHECK_EQUAL(false, is_tuple_like_v<Test>);
 	}
+
+	BOOST_AUTO_TEST_CASE_TEMPLATE(is_serializable_v_true, Test, test_serializable_types) {
+		BOOST_CHECK_EQUAL(true, is_serializable_v<Test>);
+	}
+
+#if BOOST_CXX_VERSION >= 202002L
+	BOOST_AUTO_TEST_CASE_TEMPLATE(serializable_concept_true, Test, test_serializable_types) {
+		BOOST_CHECK_EQUAL(true, serializable<Test>);
+	}
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

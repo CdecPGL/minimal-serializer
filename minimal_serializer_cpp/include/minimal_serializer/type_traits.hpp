@@ -105,9 +105,19 @@ namespace minimal_serializer {
 		static auto check(...) -> std::false_type;
 	};
 
+	// To avoid an error of trying to access member alias of non class type.
 	template <typename T>
-	constexpr bool has_serialize_targets_definition_v = decltype(has_serialize_targets_definition_impl::check<T
-	>(std::declval<T>()))::value;
+	constexpr auto has_serialize_targets_definition_impl2() {
+		if constexpr (std::is_class_v<T>) {
+			return decltype(has_serialize_targets_definition_impl::check<T>(std::declval<T>()))::value;
+		}
+		else {
+			return false;
+		}
+	}
+
+	template <typename T>
+	constexpr bool has_serialize_targets_definition_v = has_serialize_targets_definition_impl2<T>();
 
 	// float is available in boost.endian if Boost Library version >= 1.74.0
 #if BOOST_VERSION >= 107400

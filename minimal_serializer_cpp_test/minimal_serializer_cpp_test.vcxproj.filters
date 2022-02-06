@@ -7,4 +7,7 @@
     <ClCompile Include="string_utility_test.cpp" />
     <ClCompile Include="type_traits_test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="serialize_test_types.hpp" />
+  </ItemGroup>
 </Project>
