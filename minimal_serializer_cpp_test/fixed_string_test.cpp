@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <boost/test/unit_test.hpp>
 #include <boost/config.hpp>
+//#include <boost/test/tools/output_test_stream.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
 
@@ -28,6 +29,7 @@ using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
 BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_alphabet) {
 		const auto test = u8"ABCXYZ";
+		// Use BOOST_CHECK instead of BOOST_CHECK_EQUAL because BOOST_CHECK does not support u8string due to std::ostream support.
 		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
@@ -178,6 +180,15 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 		const fixed_string_t<15> test1(u8"さしすせそ");
 		BOOST_CHECK_EQUAL(15, test1.size());
 	}
+
+	// Not available due to https://stackoverflow.com/questions/3185380/boost-test-output-test-stream-fails-with-templated-output-operator
+	//BOOST_AUTO_TEST_CASE(test_ostream) {
+	//	using boost::test_tools::output_test_stream;
+	//	output_test_stream output;
+	//	output << fixed_string_t<32>(u8"こんちは");
+	//	// Test with not u8 string because string passed to operator is treated as char* internally even if it is u8string.
+	//	BOOST_TEST(output.is_equal("こんちは"));
+	//}
 
 
 BOOST_AUTO_TEST_SUITE_END()

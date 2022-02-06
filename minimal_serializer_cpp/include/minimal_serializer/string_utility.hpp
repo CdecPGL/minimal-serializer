@@ -15,8 +15,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <type_traits>
 
 #include <boost/config.hpp>
+#include <boost/locale.hpp>
 
 #include "nameof.hpp"
+
+#if __has_include(<windows.h>)
+#define NOMINMAX
+#include <windows.h>
+#undef small
+#endif
 
 namespace minimal_serializer {
 	namespace generate_string_type_traits {
@@ -31,41 +38,65 @@ namespace minimal_serializer {
 		 * Not supported char types in generate_string.
 		 */
 		template<typename T>
-		constexpr bool is_not_supported_char_v = std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
+		constexpr bool is_not_supported_char_v = std::is_same_v<T, wchar_t> || std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
 #else
 		/**
 		 * Not supported char types in generate_string.
 		 */
 		template<typename T>
-		constexpr bool is_not_supported_char_v = std::is_same_v<T, char8_t> || std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
-#endif
-
-#if BOOST_CXX_VERSION < 202002L
-		/**
-		 * Not supported natively by ostream but supported additionally char array types in generate_string.
-		 */
-		template<typename T>
-		constexpr bool is_additionally_supported_char_as_array_v = false;
-#else
-		/**
-		 * Not supported natively by ostream but supported additionally char array types in generate_string.
-		 */
-		template<typename T>
-		constexpr bool is_additionally_supported_char_as_array_v = std::is_same_v<T, char8_t>;
+		constexpr bool is_not_supported_char_v = std::is_same_v<T, wchar_t> || std::is_same_v<T, char8_t> || std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
 #endif
 
 		/**
 		 * Not supported char array types in generate_string.
 		 */
 		template<typename T>
-		constexpr bool is_not_supported_char_array_v = std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
+		constexpr bool is_not_supported_char_array_v = std::is_same_v<T, wchar_t> || std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
 	}
 
 	// return true if generating string from enum type is supported. If this value is false, enum type values are treated as its underlying type values. This depends on nameof C++.
 	constexpr bool is_generate_enum_string_supported = nameof::is_nameof_enum_supported;
 
+	inline std::string convert_utf8_to_system_encode(const char* u8_str) {
+#if __has_include(<windows.h>)
+		// In widows, default strings (char*) are treated as language specific character codes which is not UTF-8, so conversion is required.
+		// Convert UTF-8 to wide string (UTF-16)
+		constexpr auto get_win32_error_message = []{
+			const auto error_code = ::GetLastError();
+			std::array<char, 1024> error_message{};
+			::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, 0, error_message.data(), error_message.size(), nullptr);
+			std::ostringstream oss;
+			oss << error_message.data();
+			return oss.str();
+		};
+
+		auto const w_str_size = ::MultiByteToWideChar(CP_UTF8, 0U, u8_str, -1, nullptr, 0U);
+		std::vector<wchar_t> w_str(w_str_size, L'\0');
+		if (::MultiByteToWideChar(CP_UTF8, 0U, u8_str, -1, w_str.data(), w_str.size()) == 0) {
+			throw std::runtime_error(get_win32_error_message());
+		}
+		w_str.resize(std::char_traits<wchar_t>::length(w_str.data()));
+		w_str.shrink_to_fit();
+
+		// Convert wide string (UTF-16) to system encode.
+		std::vector<char> sys_str(w_str.size() * sizeof(wchar_t) + 1, '\0');
+		if (::WideCharToMultiByte(CP_ACP,0, w_str.data(), w_str.size(), sys_str.data(), sys_str.size(), nullptr, nullptr) == 0) {
+			throw std::runtime_error(get_win32_error_message());
+		}
+
+		sys_str.resize(std::char_traits<char>::length(sys_str.data()));
+		sys_str.shrink_to_fit();
+		return std::string(sys_str.begin(), sys_str.end());
+#else
+		// In linux, default strings (char*) are treated as UTF-8, so conversion is not required.
+		// How about MacOS X ???
+		return std::string(u8_str);
+#endif
+	}
+
 	template <typename T>
 	void generate_string_converter(std::ostringstream& oss, T&& value) {
+		using namespace boost::locale::conv;
 		using namespace generate_string_type_traits;
 		using non_cv_ref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 		static_assert(!is_not_supported_char_v<non_cv_ref_t>, "Not supported character type.");
@@ -76,14 +107,17 @@ namespace minimal_serializer {
 		if constexpr (is_char_as_integer_v<non_cv_ref_t>) {
 			oss << std::char_traits<non_cv_ref_t>::to_int_type(value);
 		}
-		else if constexpr (std::is_pointer_v<non_cv_ref_t> && is_additionally_supported_char_as_array_v<std::remove_pointer_t<non_cv_ref_t>>) {
+#if BOOST_CXX_VERSION >= 202002L
+		// char8_t support
+		else if constexpr (std::is_pointer_v<non_cv_ref_t> && std::is_same_v<std::remove_pointer_t<non_cv_ref_t>, char8_t>) {
 			using element_t = std::remove_pointer_t<non_cv_ref_t>;
-			oss << reinterpret_cast<char*>(const_cast<element_t*>(value));
+			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<element_t*>(value)));
 		}
-		else if constexpr (std::is_array_v<non_cv_ref_t> && is_additionally_supported_char_as_array_v<std::remove_extent_t<non_cv_ref_t>>) {
+		else if constexpr (std::is_array_v<non_cv_ref_t> && std::is_same_v<std::remove_extent_t<non_cv_ref_t>, char8_t>) {
 			using element_t = std::remove_extent_t<non_cv_ref_t>;
-			oss << reinterpret_cast<char*>(const_cast<element_t*>(&value[0]));
+			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<element_t*>(&value[0])));
 		}
+#endif
 		else if constexpr (std::is_enum_v<non_cv_ref_t>) {
 			if constexpr (is_generate_enum_string_supported) {
 				oss << nameof::nameof_enum(value);
@@ -118,7 +152,6 @@ namespace minimal_serializer {
 	/**
 	 * Convert parameters to string and concatenate them to one string. This is thread safe.
 	 * @note Main use case of this function is log string generation which is outputted to std::ostream. So we dont implement the version to return std::u8string because std::u8string is not supported as std::ostream input in current C++ version (C++20).
-	 * @warning This function supports char8_t and std::u8string as parameters but this might not work correctly in the system where char type does not represent UTF-8.
 	 */
 	template <typename ... Params>
 	std::string generate_string(Params&& ... params) {

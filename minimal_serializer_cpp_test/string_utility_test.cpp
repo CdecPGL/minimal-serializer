@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		BOOST_CHECK_EQUAL("123-456", minimal_serializer::generate_string(123, -456));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_char_concatenation) {
-		BOOST_CHECK_EQUAL("1230", minimal_serializer::generate_string(static_cast<char>(123), static_cast<char>(0)));
+	BOOST_AUTO_TEST_CASE(test_byte_concatenation) {
+		BOOST_CHECK_EQUAL("123-123", minimal_serializer::generate_string(static_cast<uint8_t>(123), static_cast<int8_t>(-123)));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_float_concatenation) {

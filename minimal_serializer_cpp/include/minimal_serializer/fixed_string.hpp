@@ -135,13 +135,22 @@ namespace minimal_serializer {
 
 	/**
 	 *Enable std::ostream output.
-	 *
-	 * @warning This function enables fixed_u8string to be outputted to std::ostream but this might not work correctly in the system where char type does not represent UTF-8.
 	 */
 	template <typename String, size_t Length>
 	std::ostream& operator <<(std::ostream& os, const fixed_string_base<String, Length>& fixed_string) {
 		using char_t = typename String::value_type;
-		os << reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str()));
+
+#if BOOST_CXX_VERSION >= 202002L
+		if constexpr (std::is_same_v<char_t, char8_t>) {
+			os << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str())));
+			return os;
+		}else {
+			os << fixed_string.to_string().c_str();
+			return os;
+		}
+#endif
+
+		os << fixed_string.to_string().c_str();
 		return os;
 	}
 
@@ -164,7 +173,7 @@ namespace minimal_serializer {
 }
 
 namespace boost {
-	template <typename String, typename size_t Length>
+	template <typename String, size_t Length>
 	size_t hash_value(const minimal_serializer::fixed_string_base<String, Length>& fixed_string) {
 		size_t seed = 0;
 		hash_combine(seed, boost::hash_value(fixed_string.to_string()));
