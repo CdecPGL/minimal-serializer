@@ -8,7 +8,10 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <unordered_set>
+
 #include <boost/test/unit_test.hpp>
+#include <boost/functional/hash.hpp>
 #include <boost/config.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
@@ -187,6 +190,24 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 		ostringstream ostream;
 		ostream << fixed_string_t<32>(u8"こんちは");
 		BOOST_CHECK_EQUAL("こんちは"s, ostream.str());
+	}
+
+	BOOST_AUTO_TEST_CASE(test_std_hash) {
+		using fs = fixed_string_t<4>;
+		const fs key(u8"あ");
+		unordered_set<fs> set;
+		set.insert(key);
+		BOOST_CHECK(set.find(key) != set.end());
+		BOOST_CHECK(set.find(fs(u8"い")) == set.end());
+	}
+
+	BOOST_AUTO_TEST_CASE(test_boost_hash) {
+		using fs = fixed_string_t<4>;
+		const fs key(u8"あ");
+		unordered_set<fs, boost::hash<fs>> set;
+		set.insert(key);
+		BOOST_CHECK(set.find(key) != set.end());
+		BOOST_CHECK(set.find(fs(u8"い")) == set.end());
 	}
 
 

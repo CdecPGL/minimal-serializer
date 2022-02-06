@@ -72,6 +72,14 @@ namespace minimal_serializer {
 			return data_[idx];
 		}
 
+		[[nodiscard]] constexpr auto begin() const {
+			return data_.begin();
+		}
+
+		[[nodiscard]] constexpr auto end() const {
+			return data_.end();
+		}
+
 		constexpr bool operator<(const fixed_string_base& other) const {
 			return to_string() < other.to_string();
 		}
@@ -183,12 +191,10 @@ namespace minimal_serializer {
 #endif
 }
 
-namespace boost {
+namespace minimal_serializer {
 	template <typename String, size_t Length>
-	size_t hash_value(const minimal_serializer::fixed_string_base<String, Length>& fixed_string) {
-		size_t seed = 0;
-		hash_combine(seed, boost::hash_value(fixed_string.to_string()));
-		return seed;
+	size_t hash_value(const fixed_string_base<String, Length>& fixed_string) {
+		return boost::hash_range(fixed_string.begin(), fixed_string.end());
 	}
 }
 
@@ -196,7 +202,7 @@ namespace std {
 	template <typename String, size_t Length>
 	struct hash<minimal_serializer::fixed_string_base<String, Length>> {
 		size_t operator()(const minimal_serializer::fixed_string_base<String, Length>& fixed_string) const noexcept {
-			return boost::hash_value(fixed_string);
+			return boost::hash_range(fixed_string.begin(), fixed_string.end());
 		}
 	};
 }
