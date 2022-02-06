@@ -28,9 +28,10 @@ namespace minimal_serializer {
 	 */
 	template <typename String, size_t Length>
 	class fixed_string_base final : boost::less_than_comparable<fixed_string_base<String, Length>>,
-								boost::equality_comparable<fixed_string_base<String, Length>> {
+									boost::equality_comparable<fixed_string_base<String, Length>> {
 		using char_t = typename String::value_type;
-		static_assert(sizeof(char_t) == sizeof(uint8_t), "The type of character must have same size with uint8_t (1byte).");
+		static_assert(sizeof(char_t) == sizeof(uint8_t),
+			"The type of character must have same size with uint8_t (1byte).");
 	public:
 		constexpr fixed_string_base() = default;
 		constexpr fixed_string_base(const fixed_string_base& other) = default;
@@ -145,7 +146,8 @@ namespace minimal_serializer {
 		return os;
 #else
 		if constexpr (std::is_same_v<char_t, char8_t>) {
-			os << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str())));
+			os << convert_utf8_to_system_encode(
+				reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str())));
 			return os;
 		}
 		else {
@@ -169,7 +171,8 @@ namespace minimal_serializer {
 	 * @deprecated Recommend to use fixed_u8string instead.
 	 */
 	template <size_t Length>
-	using fixed_string [[deprecated("Recommend to use fixed_u8string instead.")]] = fixed_string_base<std::string, Length>;
+	using fixed_string [[deprecated("Recommend to use fixed_u8string instead.")]] = fixed_string_base<
+		std::string, Length>;
 
 	/**
 	 * @brief A fixed length UTF-8 string which is trivial type. This class holds characters as uint8_t instead of char.

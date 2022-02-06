@@ -25,7 +25,7 @@ template<std::size_t Length>
 using fixed_string_t = fixed_string<Length>;
 #else
 // Test using u8string in C++20
-template<std::size_t Length>
+template <std::size_t Length>
 using fixed_string_t = fixed_u8string<Length>;
 #endif
 
@@ -159,10 +159,10 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	// Tests for standard types
 #if BOOST_VERSION >= 107400
 	using test_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
-	int32_t, uint32_t, int64_t, uint64_t, bool,
-	float, double,
-	test_enum, test_enum_class,
-	simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+										int32_t, uint32_t, int64_t, uint64_t, bool,
+										float, double,
+										test_enum, test_enum_class,
+										simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
 #else
 	using test_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
 	int32_t, uint32_t, int64_t, uint64_t, bool,

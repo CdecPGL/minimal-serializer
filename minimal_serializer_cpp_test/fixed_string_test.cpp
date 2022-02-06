@@ -24,7 +24,7 @@ using fixed_string_t = fixed_string<Length>;
 #else
 // Test using u8string in C++20
 using string_t = std::u8string;
-template<std::size_t Length>
+template <std::size_t Length>
 using fixed_string_t = fixed_u8string<Length>;
 #endif
 
