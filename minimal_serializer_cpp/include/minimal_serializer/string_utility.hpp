@@ -13,15 +13,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <vector>
+#include <array>
 
 #include <boost/config.hpp>
 
 #include "nameof.hpp"
 
 #if __has_include(<windows.h>)
+
+#ifndef STRICT
+#define STRICT
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+
 #include <windows.h>
-#undef small
 #endif
 
 namespace minimal_serializer {
@@ -63,18 +76,18 @@ namespace minimal_serializer {
 		// In widows, default strings (char*) are treated as language specific character codes which is not UTF-8, so conversion is required.
 		// Convert UTF-8 to wide string (UTF-16)
 		constexpr auto get_win32_error_message = [] {
-			const auto error_code = ::GetLastError();
+			const auto error_code = GetLastError();
 			std::array<char, 1024> error_message{};
-			::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, 0, error_message.data(),
-							error_message.size(), nullptr);
+			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, 0u, error_message.data(),
+							static_cast<DWORD>(error_message.size()), nullptr);
 			std::ostringstream oss;
 			oss << error_message.data();
 			return oss.str();
 		};
 
-		auto const w_str_size = ::MultiByteToWideChar(CP_UTF8, 0U, u8_str, -1, nullptr, 0U);
+		auto const w_str_size = MultiByteToWideChar(CP_UTF8, 0u, u8_str, -1, nullptr, 0u);
 		std::vector<wchar_t> w_str(w_str_size, L'\0');
-		if (::MultiByteToWideChar(CP_UTF8, 0U, u8_str, -1, w_str.data(), w_str.size()) == 0) {
+		if (MultiByteToWideChar(CP_UTF8, 0u, u8_str, -1, w_str.data(), static_cast<int>(w_str.size())) == 0) {
 			throw std::runtime_error(get_win32_error_message());
 		}
 		w_str.resize(std::char_traits<wchar_t>::length(w_str.data()));
@@ -82,8 +95,8 @@ namespace minimal_serializer {
 
 		// Convert wide string (UTF-16) to system encode.
 		std::vector<char> sys_str(w_str.size() * sizeof(wchar_t) + 1, '\0');
-		if (::WideCharToMultiByte(CP_ACP, 0, w_str.data(), w_str.size(), sys_str.data(), sys_str.size(), nullptr,
-								nullptr) == 0) {
+		if (WideCharToMultiByte(CP_ACP, 0u, w_str.data(), static_cast<int>(w_str.size()), sys_str.data(),
+								static_cast<int>(sys_str.size()), nullptr, nullptr) == 0) {
 			throw std::runtime_error(get_win32_error_message());
 		}
 
