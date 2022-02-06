@@ -15,7 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <type_traits>
 
 #include <boost/config.hpp>
-#include <boost/locale.hpp>
 
 #include "nameof.hpp"
 
@@ -100,7 +99,6 @@ namespace minimal_serializer {
 
 	template <typename T>
 	void generate_string_converter(std::ostringstream& oss, T&& value) {
-		using namespace boost::locale::conv;
 		using namespace generate_string_type_traits;
 		using non_cv_ref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 		static_assert(!is_not_supported_char_v<non_cv_ref_t>, "Not supported character type.");
