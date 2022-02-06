@@ -45,9 +45,11 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		BOOST_CHECK_EQUAL("あいうえお", minimal_serializer::generate_string(u8"あいうえお"s));
 	}
 
+#if BOOST_CXX_VERSION >= 202002L
 	BOOST_AUTO_TEST_CASE(test_fixed_u8string) {
 		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string(fixed_u8string<8>(u8"ABCXYZ")));
 	}
+#endif
 
 	BOOST_AUTO_TEST_CASE(test_string_concatenation) {
 		BOOST_CHECK_EQUAL("ABCあいう", minimal_serializer::generate_string("ABC", u8"あいう"));

@@ -156,4 +156,12 @@ namespace minimal_serializer {
 		is_serializable_enum_v<T> ||
 		is_serializable_tuple_v<T> ||
 		is_serializable_custom_type_v<T>;
+
+#if BOOST_CXX_VERSION >= 202002L
+	/**
+	 * @brief A concept to constrain types to serializable.
+	 */
+	template <typename T>
+	concept serializable = is_serializable_v<T>;
+#endif
 }

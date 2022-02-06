@@ -140,29 +140,37 @@ namespace minimal_serializer {
 	std::ostream& operator <<(std::ostream& os, const fixed_string_base<String, Length>& fixed_string) {
 		using char_t = typename String::value_type;
 
-#if BOOST_CXX_VERSION >= 202002L
+#if BOOST_CXX_VERSION < 202002L
+		os << fixed_string.to_string().c_str();
+		return os;
+#else
 		if constexpr (std::is_same_v<char_t, char8_t>) {
 			os << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str())));
 			return os;
-		}else {
+		}
+		else {
 			os << fixed_string.to_string().c_str();
 			return os;
 		}
-#else
-		os << fixed_string.to_string().c_str();
-		return os;
 #endif
 	}
 
+#if BOOST_CXX_VERSION < 202002L
 	/**
 	 * @brief A fixed length string which is trivial type. This class holds characters as uint8_t instead of char.
 	 * @tparam Length A max length of string.
 	 */
 	template <size_t Length>
 	using fixed_string = fixed_string_base<std::string, Length>;
+#else
+	/**
+	 * @brief A fixed length string which is trivial type. This class holds characters as uint8_t instead of char.
+	 * @tparam Length A max length of string.
+	 * @deprecated Recommend to use fixed_u8string instead.
+	 */
+	template <size_t Length>
+	using fixed_string [[deprecated("Recommend to use fixed_u8string instead.")]] = fixed_string_base<std::string, Length>;
 
-	// For C++20
-#if BOOST_CXX_VERSION >= 202002L
 	/**
 	 * @brief A fixed length UTF-8 string which is trivial type. This class holds characters as uint8_t instead of char.
 	 * @tparam Length A max length of string.
