@@ -109,13 +109,14 @@ namespace minimal_serializer {
 		}
 #if BOOST_CXX_VERSION >= 202002L
 		// char8_t support
-		else if constexpr (std::is_pointer_v<non_cv_ref_t> && std::is_same_v<std::remove_pointer_t<non_cv_ref_t>, char8_t>) {
-			using element_t = std::remove_pointer_t<non_cv_ref_t>;
-			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<element_t*>(value)));
+		else if constexpr (std::is_pointer_v<non_cv_ref_t> && std::is_same_v< std::remove_const_t<std::remove_pointer_t<non_cv_ref_t>>, char8_t>) {
+			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<char8_t*>(value)));
 		}
 		else if constexpr (std::is_array_v<non_cv_ref_t> && std::is_same_v<std::remove_extent_t<non_cv_ref_t>, char8_t>) {
-			using element_t = std::remove_extent_t<non_cv_ref_t>;
-			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<element_t*>(&value[0])));
+			oss << convert_utf8_to_system_encode(reinterpret_cast<char*>(const_cast<char8_t*>(&value[0])));
+		}
+		else if constexpr (std::is_same_v<non_cv_ref_t, std::u8string>) {
+			oss << convert_utf8_to_system_encode(reinterpret_cast<const char*>(const_cast<char8_t*>(value.c_str())));
 		}
 #endif
 		else if constexpr (std::is_enum_v<non_cv_ref_t>) {
@@ -126,11 +127,6 @@ namespace minimal_serializer {
 				oss << static_cast<std::underlying_type_t<non_cv_ref_t>>(value);
 			}
 		}
-#if BOOST_CXX_VERSION >= 202002L
-		else if constexpr (std::is_same_v<non_cv_ref_t, std::u8string>) {
-			oss << reinterpret_cast<const char*>(const_cast<char*>(value.c_str()));
-		}
-#endif
 		else {
 			oss << value;
 		}

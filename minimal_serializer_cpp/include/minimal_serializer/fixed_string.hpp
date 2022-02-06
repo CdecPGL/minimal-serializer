@@ -148,10 +148,10 @@ namespace minimal_serializer {
 			os << fixed_string.to_string().c_str();
 			return os;
 		}
-#endif
-
+#else
 		os << fixed_string.to_string().c_str();
 		return os;
+#endif
 	}
 
 	/**

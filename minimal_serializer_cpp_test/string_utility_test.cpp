@@ -11,18 +11,54 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <boost/test/unit_test.hpp>
 
 #include "minimal_serializer/string_utility.hpp"
+#include "minimal_serializer/fixed_string.hpp"
+
+using namespace std;
+using namespace minimal_serializer;
 
 BOOST_AUTO_TEST_SUITE(string_utilities_test)
-	BOOST_AUTO_TEST_CASE(test_string_concatenation) {
-		BOOST_CHECK_EQUAL("ABCXYZあいう", minimal_serializer::generate_string(u8"ABC", u8"XYZ", u8"あいう"));
+	BOOST_AUTO_TEST_CASE(test_char_array) {
+		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string("ABCXYZ"));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_integer_concatenation) {
-		BOOST_CHECK_EQUAL("123-456", minimal_serializer::generate_string(123, -456));
+	BOOST_AUTO_TEST_CASE(test_char_array_pointer) {
+		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string(&"ABCXYZ"[0]));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_string) {
+		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string("ABCXYZ"s));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_fixed_string) {
+		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string(fixed_string<8>("ABCXYZ")));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_u8char_array) {
+		BOOST_CHECK_EQUAL("あいうえお", minimal_serializer::generate_string(u8"あいうえお"));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_u8char_array_pointer) {
+		BOOST_CHECK_EQUAL("あいうえお", minimal_serializer::generate_string(&u8"あいうえお"[0]));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_u8string) {
+		BOOST_CHECK_EQUAL("あいうえお", minimal_serializer::generate_string(u8"あいうえお"s));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_fixed_u8string) {
+		BOOST_CHECK_EQUAL("ABCXYZ", minimal_serializer::generate_string(fixed_u8string<8>(u8"ABCXYZ")));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_string_concatenation) {
+		BOOST_CHECK_EQUAL("ABCあいう", minimal_serializer::generate_string("ABC", u8"あいう"));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_byte_concatenation) {
 		BOOST_CHECK_EQUAL("123-123", minimal_serializer::generate_string(static_cast<uint8_t>(123), static_cast<int8_t>(-123)));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_integer_concatenation) {
+		BOOST_CHECK_EQUAL("123-456", minimal_serializer::generate_string(123, -456));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_float_concatenation) {
@@ -75,10 +111,6 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 
 	BOOST_AUTO_TEST_CASE(test_empty_parameter) {
 		BOOST_CHECK_EQUAL("", minimal_serializer::generate_string());
-	}
-
-	BOOST_AUTO_TEST_CASE(test_one_parameter) {
-		BOOST_CHECK_EQUAL("1", minimal_serializer::generate_string(1));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_many_parameters) {
