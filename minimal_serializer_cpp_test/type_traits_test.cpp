@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019-2021 Cdec
+Copyright (c) 2019-2022 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -15,6 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "minimal_serializer/type_traits.hpp"
 
+using namespace std;
+using namespace minimal_serializer;
+
 struct custom_struct final {};
 
 using tuple_like_types = boost::mpl::list<std::array<uint32_t, 24>, std::tuple<bool, int8_t, uint64_t>, std::pair<
@@ -25,11 +28,11 @@ using not_tuple_like_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t
 
 BOOST_AUTO_TEST_SUITE(type_traits_test)
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_is_tuple_like_true, Test, tuple_like_types) {
-		BOOST_CHECK_EQUAL(true, minimal_serializer::is_tuple_like_v<Test>);
+		BOOST_CHECK_EQUAL(true, is_tuple_like_v<Test>);
 	}
 
 	BOOST_AUTO_TEST_CASE_TEMPLATE(test_is_tuple_like_false, Test, not_tuple_like_types) {
-		BOOST_CHECK_EQUAL(false, minimal_serializer::is_tuple_like_v<Test>);
+		BOOST_CHECK_EQUAL(false, is_tuple_like_v<Test>);
 	}
 
 BOOST_AUTO_TEST_SUITE_END()

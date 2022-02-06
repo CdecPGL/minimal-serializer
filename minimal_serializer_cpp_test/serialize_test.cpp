@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019-2021 Cdec
+Copyright (c) 2019-2022 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -16,19 +16,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "minimal_serializer/serializer.hpp"
 #include "minimal_serializer/fixed_string.hpp"
 
+using namespace std;
+using namespace minimal_serializer;
+
 // Test using string before C++17
 #if BOOST_CXX_VERSION < 202002L
 template<std::size_t Length>
-using fixed_string_t = minimal_serializer::fixed_string<Length>;
+using fixed_string_t = fixed_string<Length>;
 #else
 // Test using u8string in C++20
 template<std::size_t Length>
-using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
+using fixed_string_t = fixed_u8string<Length>;
 #endif
 
 // 22 bytes
 struct simple_struct_member_serialize final {
-	const static size_t size = 22;
+	constexpr static size_t size = 22;
 
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
@@ -45,13 +48,13 @@ struct simple_struct_member_serialize final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<
+	using serialize_targets = serialize_target_container<
 		&simple_struct_member_serialize::value1, &simple_struct_member_serialize::value2>;
 };
 
 // 22 bytes
 struct simple_struct_global_serialize final {
-	const static size_t size = 22;
+	constexpr static size_t size = 22;
 
 	std::array<int32_t, 5> value1;
 	uint16_t value2;
@@ -79,7 +82,7 @@ namespace minimal_serializer {
 
 // 94 bytes
 struct nested_struct final {
-	const static size_t size = 94;
+	constexpr static size_t size = 94;
 
 	uint8_t value1;
 	int64_t value2;
@@ -108,7 +111,7 @@ struct nested_struct final {
 		};
 	}
 
-	using serialize_targets = minimal_serializer::serialize_target_container<
+	using serialize_targets = serialize_target_container<
 		&nested_struct::value1, &nested_struct::value2, &nested_struct::value3, &nested_struct::value4, &
 		nested_struct::value5, &nested_struct::value6>;
 };
@@ -199,22 +202,22 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		const auto actual = expected;
-		minimal_serializer::serialize(actual);
+		serialize(actual);
 		BOOST_TEST(expected == actual, boost::test_tools::per_element());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
-		auto data1 = minimal_serializer::serialize(expected);
-		auto data2 = minimal_serializer::serialize(expected);
+		auto data1 = serialize(expected);
+		auto data2 = serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_array) {
 		const std::array<int32_t, 4> expected = {-123, 23, 56, 7};
 		std::array<int32_t, 4> actual{};
-		const auto data = minimal_serializer::serialize(expected);
-		minimal_serializer::deserialize(actual, data);
+		const auto data = serialize(expected);
+		deserialize(actual, data);
 		BOOST_TEST(expected == actual, boost::test_tools::per_element());
 	}
 
@@ -229,7 +232,7 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 			-123, 23, true, u8"ういw"
 		};
 		const auto actual = expected;
-		minimal_serializer::serialize(actual);
+		serialize(actual);
 		BOOST_CHECK(expected == actual);
 	}
 
@@ -237,8 +240,8 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		const std::tuple<int32_t, uint16_t, bool, fixed_string_t<8>> expected = {
 			-123, 23, true, u8"はい?"
 		};
-		auto data1 = minimal_serializer::serialize(expected);
-		auto data2 = minimal_serializer::serialize(expected);
+		auto data1 = serialize(expected);
+		auto data2 = serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
@@ -247,8 +250,8 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 			-123, 23, true, u8"はあ!"
 		};
 		std::tuple<int32_t, uint16_t, bool, fixed_string_t<8>> actual{};
-		const auto data = minimal_serializer::serialize(expected);
-		minimal_serializer::deserialize(actual, data);
+		const auto data = serialize(expected);
+		deserialize(actual, data);
 		BOOST_CHECK(expected == actual);
 	}
 
@@ -262,22 +265,22 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_fixed_string) {
 		const fixed_string_t<16> expected = u8"おはよu";
 		const auto actual = expected;
-		minimal_serializer::serialize(actual);
+		serialize(actual);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_consistency_fixed_string) {
 		const fixed_string_t<32> expected = u8"さよなら123";
-		auto data1 = minimal_serializer::serialize(expected);
-		auto data2 = minimal_serializer::serialize(expected);
+		auto data1 = serialize(expected);
+		auto data2 = serialize(expected);
 		BOOST_CHECK_EQUAL_COLLECTIONS(data1.begin(), data1.end(), data2.begin(), data2.end());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_member_serialize_deserialize_fixed_string) {
 		const fixed_string_t<16> expected = u8"こんbanわ";
 		fixed_string_t<16> actual{};
-		const auto data = minimal_serializer::serialize(expected);
-		minimal_serializer::deserialize(actual, data);
+		const auto data = serialize(expected);
+		deserialize(actual, data);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
@@ -287,16 +290,16 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_serialize_deserialize_offset) {
-		const uint64_t expected = 123456789;
+		constexpr uint64_t expected = 123456789;
 		std::vector<uint8_t> buffer(20);
-		minimal_serializer::serialize(expected, buffer, 12);
+		serialize(expected, buffer, 12);
 		uint64_t actual = 0;
-		minimal_serializer::deserialize(actual, buffer, 12);
+		deserialize(actual, buffer, 12);
 		BOOST_CHECK_EQUAL(expected, actual);
 	}
 
 	BOOST_AUTO_TEST_CASE(test_serialize_offset_out_of_range) {
-		const uint64_t value = 0;
+		constexpr uint64_t value = 0;
 		std::vector<uint8_t> buffer(20);
 		BOOST_CHECK_THROW(minimal_serializer::serialize(value, buffer, 13), minimal_serializer::serialization_error);
 	}
@@ -308,13 +311,13 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_serialize_deserialize_stream) {
-		const uint64_t expected = 123456789;
+		constexpr uint64_t expected = 123456789;
 		std::ostringstream ostream(std::ios::binary);
-		minimal_serializer::serialize(expected, ostream);
+		serialize(expected, ostream);
 
 		uint64_t actual = 0;
 		std::istringstream istream(std::string(ostream.str().data(), ostream.str().size()), std::ios::binary);
-		minimal_serializer::deserialize(actual, istream);
+		deserialize(actual, istream);
 
 		BOOST_CHECK_EQUAL(expected, actual);
 	}

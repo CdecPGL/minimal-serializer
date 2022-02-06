@@ -10,20 +10,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <boost/test/unit_test.hpp>
 #include <boost/config.hpp>
-//#include <boost/test/tools/output_test_stream.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
+
+using namespace std;
+using namespace minimal_serializer;
 
 // Test using string before C++17
 #if BOOST_CXX_VERSION < 202002L
 using string_t = std::string;
 template<std::size_t Length>
-using fixed_string_t = minimal_serializer::fixed_string<Length>;
+using fixed_string_t = fixed_string<Length>;
 #else
 // Test using u8string in C++20
 using string_t = std::u8string;
 template<std::size_t Length>
-using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
+using fixed_string_t = fixed_u8string<Length>;
 #endif
 
 BOOST_AUTO_TEST_SUITE(fixed_string_test)
@@ -83,8 +85,7 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	BOOST_AUTO_TEST_CASE(test_copy_operator) {
 		const string_t test = u8"かきくけこ";
 		const fixed_string_t<32> original(test);
-		fixed_string_t<32> copied;
-		copied = original;
+		const fixed_string_t<32> copied = original;
 		BOOST_CHECK(test == original.to_string());
 		BOOST_CHECK(test == copied.to_string());
 	}
@@ -181,14 +182,12 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 		BOOST_CHECK_EQUAL(15, test1.size());
 	}
 
-	// Not available due to https://stackoverflow.com/questions/3185380/boost-test-output-test-stream-fails-with-templated-output-operator
-	//BOOST_AUTO_TEST_CASE(test_ostream) {
-	//	using boost::test_tools::output_test_stream;
-	//	output_test_stream output;
-	//	output << fixed_string_t<32>(u8"こんちは");
-	//	// Test with not u8 string because string passed to operator is treated as char* internally even if it is u8string.
-	//	BOOST_TEST(output.is_equal("こんちは"));
-	//}
+	// boost::output_test_stream is not available due to https://stackoverflow.com/questions/3185380/boost-test-output-test-stream-fails-with-templated-output-operator
+	BOOST_AUTO_TEST_CASE(test_ostream) {
+		ostringstream ostream;
+		ostream << fixed_string_t<32>(u8"こんちは");
+		BOOST_CHECK_EQUAL("こんちは"s, ostream.str());
+	}
 
 
 BOOST_AUTO_TEST_SUITE_END()
