@@ -13,6 +13,8 @@ commands:
         type: string
       compiler:
         type: string
+      cpp:
+        type: integer
     steps:
       - checkout
       - run:
@@ -21,7 +23,7 @@ commands:
       - run:
           name: Create build files
           working_directory: build_<< parameters.id >>
-          command: cmake .. -DCMAKE_CXX_COMPILER=<< parameters.compiler >>
+          command: cmake .. -DCMAKE_CXX_COMPILER=<< parameters.compiler >> -DCMAKE_CXX_STANDARD=<<parameters.cpp>>
       - run:
           name: Build binaries
           working_directory: build_<< parameters.id >>
@@ -54,55 +56,109 @@ commands:
           path: ~/test-results/junit
 
 jobs:
-  build_gpp:
+  build_gpp_cpp17:
     executor: default
     steps:
       - build:
-          id: gpp
+          id: g++-c++17
           compiler: g++
+          cpp: 17
 
-  build_clang:
+  build_clang_cpp17:
     executor: default
     steps:
       - build:
-          id: clang
+          id: clang-c++17
           compiler: clang++
+          cpp: 17
 
-  test_gpp:
+  build_gpp_cpp20:
+    executor: default
+    steps:
+      - build:
+          id: g++-c++20
+          compiler: g++
+          cpp: 20
+
+  build_clang_cpp20:
+    executor: default
+    steps:
+      - build:
+          id: clang-c++20
+          compiler: clang++
+          cpp: 20
+
+  test_gpp_cpp17:
     executor: default
     steps:
       - test:
-          id: gpp
+          id: g++-c++17
 
-  test_clang:
+  test_clang_cpp17:
     executor: default
     steps:
       - test:
-          id: clang
+          id: clang-c++17
+
+  test_gpp_cpp20:
+    executor: default
+    steps:
+      - test:
+          id: g++-c++20
+
+  test_clang_cpp20:
+    executor: default
+    steps:
+      - test:
+          id: clang-c++20
 
 workflows:
   build_and_test:
     jobs:
-      - build_gpp:
+      - build_gpp_cpp17:
           filters:
             branches:
               only: master
 
-      - build_clang:
+      - build_clang_cpp17:
           filters:
             branches:
               only: master
 
-      - test_gpp:
+      - build_gpp_cpp20:
+          filters:
+            branches:
+              only: master
+
+      - build_clang_cpp20:
+          filters:
+            branches:
+              only: master
+
+      - test_gpp_cpp17:
           requires:
-            - build_gpp
+            - build_gpp_cpp17
           filters:
             branches:
               only: master
 
-      - test_clang:
+      - test_clang_cpp17:
           requires:
-            - build_clang
+            - build_clang_cpp17
+          filters:
+            branches:
+              only: master
+
+      - test_gpp_cpp20:
+          requires:
+            - build_gpp_cpp20
+          filters:
+            branches:
+              only: master
+
+      - test_clang_cpp20:
+          requires:
+            - build_clang_cpp20
           filters:
             branches:
               only: master
