@@ -130,8 +130,8 @@ namespace minimal_serializer {
 		std::is_same_v<T, int64_t> ||
 		std::is_same_v<T, uint64_t> ||
 		std::is_same_v<T, bool> ||
-		std::is_same_v<T, float> && sizeof(float) == 4 ||
-		std::is_same_v<T, double> && sizeof(double) == 8;
+		(std::is_same_v<T, float> && sizeof(float) == 4) ||
+		(std::is_same_v<T, double> && sizeof(double) == 8);
 #else
 	template <typename T>
 	constexpr bool is_serializable_builtin_type_v =
