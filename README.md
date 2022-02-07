@@ -34,8 +34,8 @@ See [Serializer Usage](documents/serializer.md) to know usage of minimal-seriali
 struct Data {
     uint32_t value;
     std::array<int64_t, 16> array;
-    minimal_serializer::fixed_string<32> string;
-    minimal_serializer::fixed_u8string<32> u8string; // C++20
+    minimal_serializer::fixed_string<32> string; // Ensure encoding is UTF-8. We strongly recommend to use u8 literal. This type is deprecated when using C++20
+    minimal_serializer::fixed_u8string<32> u8string; // (C++20) A string whose encoding is guaranteed to be UTF-8. Use this type instead of fixed_string in C++20
 
     // Intrusive definition of serialize targets
     using serialize_targets = minimal_serializer::serialize_target_container<&Data::value, &Data::array, &Data::string>, &Data::u8string>;

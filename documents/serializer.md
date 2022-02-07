@@ -150,6 +150,18 @@ minimal_serializer::fixed_string<16> ok_japanese = u8"こんにちは";
 minimal_serializer::fixed_string<16> ng_japanese = u8"おはようございます";
 ```
 
+### Character Endoding
+
+This library uses UTF-8 as character encoding according to defact standard in Web.
+
+In C++17, `minimal_serializer::fixed_string` which is similar to `std::string` is available as UTF-8 string type.
+However, the type does not guarantee that character encoding is UTF-8 because there are no character type which guarantees that character encoding is UTF-8 in C++17.
+Because of this reason, ***it is a part of your responsibilities to ensure the character encoding is UTF-8 by using `u8` string literal.***
+
+In C++20, `minimal_serializer::fixed_u8string` which is similar to `std::u8string` is available as UTF-8 string type.
+The type guarantees that character encoding is UTF-8 so you can safely use UTF-8 string with `u8` string literal.
+`minimal_serializer::fixed_string` is deprecated in C++20.
+
 ## C#
 
 ### Available Types
@@ -204,6 +216,13 @@ There are two or three steps to make custom type serializable.
 1. Add `System.Serializable` attribute
 1. Add `FixedLength` attribute to string and array members
 1. (If class) Add `[StructLayout(LayoutKind.Sequential)]` attribute
+
+### Character Endoding
+
+This library uses UTF-8 as character encoding according to defact standard in Web.
+
+In C#, `string` has characters as UTF-16 internally but this library converts encodings between UTF-16 and UTF-8 automatically when serialization and deserialization.
+Because of this, you can use `string` without considering character encoding.
 
 ## Common
 
