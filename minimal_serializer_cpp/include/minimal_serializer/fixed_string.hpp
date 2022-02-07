@@ -15,7 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <boost/operators.hpp>
 #include <boost/functional/hash.hpp>
-#include <boost/config.hpp>
 
 #include "serializer.hpp"
 #include "string_utility.hpp"
@@ -147,12 +146,11 @@ namespace minimal_serializer {
 	 */
 	template <typename String, size_t Length>
 	std::ostream& operator <<(std::ostream& os, const fixed_string_base<String, Length>& fixed_string) {
-		using char_t = typename String::value_type;
-
-#if BOOST_CXX_VERSION < 202002L
+#ifndef __cpp_char8_t
 		os << fixed_string.to_string().c_str();
 		return os;
 #else
+		using char_t = typename String::value_type;
 		if constexpr (std::is_same_v<char_t, char8_t>) {
 			os << convert_utf8_to_system_encode(
 				reinterpret_cast<char*>(const_cast<char_t*>(fixed_string.to_string().c_str())));
@@ -165,7 +163,7 @@ namespace minimal_serializer {
 #endif
 	}
 
-#if BOOST_CXX_VERSION < 202002L
+#ifndef __cpp_char8_t
 	/**
 	 * @brief A fixed length string which is trivial type. This class holds characters as uint8_t instead of char.
 	 * @tparam Length A max length of string.

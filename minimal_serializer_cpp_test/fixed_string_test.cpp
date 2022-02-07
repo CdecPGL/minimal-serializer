@@ -12,7 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <boost/test/unit_test.hpp>
 #include <boost/functional/hash.hpp>
-#include <boost/config.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
 
@@ -20,7 +19,7 @@ using namespace std;
 using namespace minimal_serializer;
 
 // Test using string before C++17
-#if BOOST_CXX_VERSION < 202002L
+#ifndef __cpp_char8_t
 using string_t = std::string;
 template<std::size_t Length>
 using fixed_string_t = fixed_string<Length>;

@@ -12,8 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <type_traits>
 
-#include <boost/version.hpp>
-
 namespace minimal_serializer {
 	/**
 	 * @brief Remove const, volatile and reference
@@ -167,7 +165,7 @@ namespace minimal_serializer {
 		is_serializable_tuple_v<T> ||
 		is_serializable_custom_type_v<T>;
 
-#if BOOST_CXX_VERSION >= 202002L
+#if __cpp_concepts
 	/**
 	 * @brief A concept to constrain types to serializable.
 	 */

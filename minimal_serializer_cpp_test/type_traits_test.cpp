@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_SUITE(type_traits_test)
 		BOOST_CHECK_EQUAL(true, is_serializable_v<Test>);
 	}
 
-#if BOOST_CXX_VERSION >= 202002L
+#if __cpp_concepts
 	BOOST_AUTO_TEST_CASE_TEMPLATE(serializable_concept_true, Test, test_serializable_types) {
 		BOOST_CHECK_EQUAL(true, serializable<Test>);
 	}

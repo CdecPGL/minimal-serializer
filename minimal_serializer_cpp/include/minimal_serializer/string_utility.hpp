@@ -16,8 +16,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <vector>
 #include <array>
 
-#include <boost/config.hpp>
-
 #include "nameof.hpp"
 
 #if __has_include(<windows.h>)
@@ -45,7 +43,7 @@ namespace minimal_serializer {
 		template <typename T>
 		constexpr bool is_char_as_integer_v = std::is_same_v<T, int8_t> || std::is_same_v<T, uint8_t>;
 
-#if BOOST_CXX_VERSION < 202002L
+#ifndef __cpp_char8_t
 		/**
 		 * Not supported char types in generate_string.
 		 */
@@ -120,9 +118,14 @@ namespace minimal_serializer {
 		// char types are recognized as character in ostringstream, so '0' means 'end of string' and '0' in char types will not displayed.
 		// To avoid these, cast char types assigned to uint8_t and int8_t to int before pass them to ostringstream
 		if constexpr (is_char_as_integer_v<non_cv_ref_t>) {
-			oss << std::char_traits<non_cv_ref_t>::to_int_type(value);
+			if constexpr (std::is_signed_v<non_cv_ref_t>) {
+				oss << static_cast<int32_t>(value);
+			}
+			else {
+				oss << static_cast<uint32_t>(value);
+			}
 		}
-#if BOOST_CXX_VERSION >= 202002L
+#if __cpp_char8_t
 		// char8_t support
 		else if constexpr (std::is_pointer_v<non_cv_ref_t> && std::is_same_v<
 			std::remove_const_t<std::remove_pointer_t<non_cv_ref_t>>, char8_t>) {

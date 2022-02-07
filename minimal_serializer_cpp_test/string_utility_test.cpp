@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(u8"あいうえお"s));
 	}
 
-#if BOOST_CXX_VERSION >= 202002L
+#if __cpp_char8_t
 	BOOST_AUTO_TEST_CASE(test_fixed_u8string) {
 		BOOST_CHECK_EQUAL("ABCXYZ", generate_string(fixed_u8string<8>(u8"ABCXYZ")));
 	}

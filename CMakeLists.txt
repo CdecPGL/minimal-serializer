@@ -23,9 +23,15 @@ macro(install_symlink filepath sympath)
 endmacro(install_symlink)
 
 # C++ configurations
-set(CMAKE_CXX_STANDARD 17)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "C++ version must be 17 or higher.")
+endif()
 
 # Compiler configurations
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

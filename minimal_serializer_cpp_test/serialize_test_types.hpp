@@ -6,7 +6,7 @@
 #include "minimal_serializer/fixed_string.hpp"
 
 // Test using string before C++17
-#if BOOST_CXX_VERSION < 202002L
+#ifndef __cpp_char8_t
 template<std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_string<Length>;
 #else
