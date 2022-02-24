@@ -4,7 +4,7 @@ executors:
   default:
     working_directory: ~/workspace
     docker:
-      - image: cdec/minimal-serializer:dev-alpine
+      - image: cdec/minimal-serializer-dev:0.2.4
 
 commands:
   build:

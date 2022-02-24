@@ -176,14 +176,14 @@ Copy all files in `MinimalSerializerCSharp/Source` directory to your project.
 1. `make install`
 1. `ctest`
 
-Instead of installing required packages, you can use docker container "`cdec/minimal-serializer:dev-alpine`" to build and run tests like below command.
+Instead of installing required packages, you can use docker container "`cdec/minimal-serializer-dev`" to build and run tests like below command.
 
 ```bash
-docker run -v <A Path of Minimal Serialier Repogitory>:/minimal-serializer -itd cdec/minimal-serializer:dev-alpine
+docker run -v <A Path of Minimal Serialier Repogitory>:/minimal-serializer -itd cdec/minimal-serializer-dev:latest
 ```
 
-`cdec/minimal-serializer:dev-alpine` is built from `docker/dev-alpine/Dockerfile` in this repository.
-You can build a docker image yourself with `docker/dev-alpine/Dockerfile` if you need.
+`cdec/minimal-serializer-dev` is built from `docker/dev/Dockerfile` in this repository.
+You can build a docker image yourself with `docker/dev/Dockerfile` if you need.
 
 ### C#
 
