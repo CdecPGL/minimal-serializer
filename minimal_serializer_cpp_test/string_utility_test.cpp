@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019-2022 Cdec
+Copyright (c) 2019 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -9,9 +9,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 #include <boost/test/unit_test.hpp>
+#include <boost/static_string/static_string.hpp>
 
 #include "minimal_serializer/string_utility.hpp"
 #include "minimal_serializer/fixed_string.hpp"
+
+#include "serialize_test_types.hpp"
 
 using namespace std;
 using namespace minimal_serializer;
@@ -30,7 +33,11 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_fixed_string) {
-		BOOST_CHECK_EQUAL("ABCXYZ", generate_string(fixed_string<8>("ABCXYZ")));
+		BOOST_CHECK_EQUAL("うおo", generate_string(fixed_string_t<8>(u8"うおo")));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_boost_static_string) {
+		BOOST_CHECK_EQUAL("うおo", generate_string(boost_static_string_t<8>(u8"うおo")));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_u8char_array) {
@@ -44,12 +51,6 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 	BOOST_AUTO_TEST_CASE(test_u8string) {
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(u8"あいうえお"s));
 	}
-
-#if __cpp_char8_t
-	BOOST_AUTO_TEST_CASE(test_fixed_u8string) {
-		BOOST_CHECK_EQUAL("ABCXYZ", generate_string(fixed_u8string<8>(u8"ABCXYZ")));
-	}
-#endif
 
 	BOOST_AUTO_TEST_CASE(test_string_concatenation) {
 		BOOST_CHECK_EQUAL("ABCあいう", generate_string("ABC", u8"あいう"));

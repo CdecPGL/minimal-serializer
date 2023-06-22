@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019-2022 Cdec
+Copyright (c) 2019 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -15,8 +15,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <type_traits>
 #include <vector>
 #include <array>
+#include <boost/static_string/static_string.hpp>
 
 #include "nameof.hpp"
+
+#include "type_traits.hpp"
 
 #if __has_include(<windows.h>)
 
@@ -100,7 +103,7 @@ namespace minimal_serializer {
 
 		sys_str.resize(std::char_traits<char>::length(sys_str.data()));
 		sys_str.shrink_to_fit();
-		return std::string(sys_str.begin(), sys_str.end());
+		return {sys_str.begin(), sys_str.end()};
 #else
 		// In linux, default strings (char*) are treated as UTF-8, so conversion is not required.
 		// How about MacOS X ???
@@ -147,20 +150,30 @@ namespace minimal_serializer {
 				oss << static_cast<std::underlying_type_t<non_cv_ref_t>>(value);
 			}
 		}
+		// std::type_info support
+		else if constexpr (std::is_same_v<non_cv_ref_t, std::type_info>) {
+			oss << value.name();
+		}
+#if __cpp_char8_t
+		// boost::static_strings::static_u8string support
+		else if constexpr (is_serializable_boost_static_string_v<non_cv_ref_t>) {
+			if constexpr (std::is_same_v<typename non_cv_ref_t::value_type, char8_t>) {
+				generate_string_converter(oss, value.c_str());
+			}
+			else {
+				oss << value;
+			}
+		}
+#endif
 		else {
 			oss << value;
 		}
 	}
 
-	template <>
-	inline void generate_string_converter(std::ostringstream& oss, const std::type_info& value) {
-		oss << value.name();
-	}
-
 	inline void generate_string_impl(std::ostringstream&) {}
 
-	template <typename First, typename ... Rest>
-	void generate_string_impl(std::ostringstream& oss, First&& first, Rest&& ... rest) {
+	template <typename First, typename... Rest>
+	void generate_string_impl(std::ostringstream& oss, First&& first, Rest&&... rest) {
 		generate_string_converter(oss, std::forward<First>(first));
 		generate_string_impl(oss, std::forward<Rest>(rest)...);
 	}
@@ -169,8 +182,8 @@ namespace minimal_serializer {
 	 * Convert parameters to string and concatenate them to one string. This is thread safe.
 	 * @note Main use case of this function is log string generation which is outputted to std::ostream. So we dont implement the version to return std::u8string because std::u8string is not supported as std::ostream input in current C++ version (C++20).
 	 */
-	template <typename ... Params>
-	std::string generate_string(Params&& ... params) {
+	template <typename... Params>
+	std::string generate_string(Params&&... params) {
 		std::ostringstream oss;
 		oss << std::boolalpha;
 		generate_string_impl(oss, std::forward<Params>(params)...);

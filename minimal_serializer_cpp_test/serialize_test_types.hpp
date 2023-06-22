@@ -1,7 +1,19 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2019 Cdec
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #pragma once
 
 #include <limits>
 #include <boost/mpl/list.hpp>
+#include <boost/mpl/joint_view.hpp>
+#include <boost/static_string/static_string.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
 
@@ -9,10 +21,16 @@
 #ifndef __cpp_char8_t
 template<std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_string<Length>;
+template <std::size_t Length>
+using boost_static_string_t = boost::static_strings::static_string<Length>;
+using std_string_t = std::string;
 #else
 // Test using u8string in C++20
 template <std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
+template <std::size_t Length>
+using boost_static_string_t = boost::static_strings::static_u8string<Length>;
+using std_string_t = std::u8string;
 #endif
 
 // 22 bytes
@@ -141,17 +159,64 @@ auto get_size() -> decltype(T::size, size_t{}) {
 	return T::size;
 }
 
-// Tests for standard types
+struct simple_struct_not_serialize_targets_defined final {
+	std::array<int32_t, 5> value1;
+	uint16_t value2;
+};
+
+struct not_trivial_struct_serialize_targets_defined final {
+	std::vector<int32_t> value1;
+	using serialize_targets = minimal_serializer::serialize_target_container<&simple_struct_member_serialize::value1>;
+};
+
+// Non string serializable types to test
 #if BOOST_VERSION >= 107400
-using test_serializable_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
-												int32_t, uint32_t, int64_t, uint64_t, bool,
-												float, double,
-												test_enum, test_enum_class,
-												simple_struct_member_serialize, simple_struct_global_serialize,
-												nested_struct>;
+using test_serializable_non_string_types = boost::mpl::list<
+	int8_t, uint8_t, int16_t, uint16_t,
+	int32_t, uint32_t, int64_t, uint64_t, bool,
+	float, double,
+	test_enum, test_enum_class,
+	simple_struct_member_serialize, simple_struct_global_serialize,
+	nested_struct
+>;
 #else
-using test_serializable_types = boost::mpl::list<int8_t, uint8_t, int16_t, uint16_t,
+using test_serializable_non_string_types = boost::mpl::list<
+	int8_t, uint8_t, int16_t, uint16_t,
 	int32_t, uint32_t, int64_t, uint64_t, bool,
 	test_enum, test_enum_class,
-	simple_struct_member_serialize, simple_struct_global_serialize, nested_struct>;
+	simple_struct_member_serialize, simple_struct_global_serialize,
+	nested_struct
+>;
 #endif
+
+#pragma warning(push)
+#pragma warning(disable:4996) // Avoid deprecation of fixed_string and static_string
+// String serializable types to test
+using test_serializable_string_types = boost::mpl::list<
+	fixed_string_t<8>,
+	boost_static_string_t<8>
+>;
+#pragma warning(pop)
+
+// Tuple line serializable types to test
+using test_serializable_tuple_like_types = boost::mpl::list<
+	std::array<int32_t, 4>,
+	std::tuple<int32_t, int32_t, int32_t>,
+	std::pair<int32_t, int32_t>
+>;
+
+
+// All serializable types to test
+using test_serializable_types = boost::mpl::joint_view<
+	boost::mpl::joint_view<
+		test_serializable_non_string_types,
+		test_serializable_string_types
+	>, test_serializable_tuple_like_types>;
+
+using test_non_serializable_types = boost::mpl::list<
+	std::vector<int32_t>, std::map<int32_t, int32_t>,
+	std::string, boost::static_strings::static_u16string<8>,
+	boost::static_strings::static_u32string<8>, boost::static_strings::static_wstring<8>,
+	simple_struct_not_serialize_targets_defined,
+	not_trivial_struct_serialize_targets_defined
+>;

@@ -12,7 +12,7 @@ Types whose size is defined in compile time are supported.
 - Boolean Type
 - Static Containers: std::array, std::tuple, std::pair
 - Enum Types: enum, enum class, enum struct
-- Fixed Length String: minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)
+- Fixed Length UTF-8 String: minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20), boost::static_strings::static_string, boost::static_strings::static_u8string (C++20)
 - Trivial Custom Classes
 
 ### Not Available Types
@@ -21,7 +21,7 @@ Types whose size is different in each environment or will be change dynamically 
 
 - Size Undefined Integer Types: char, int, long, etc. (Because some of types has different size in different environment. It may not occur errors but it may not works well)
 - Dynamic Containers: std::vector, std::map, std::string, raw array etc.
-- Dynamic String: std::string
+- Dynamic or Not UTF-8 String String: std::string, std::u16string, std::u32string, std::wstring, boost::static_strings::static_u16string, boost::static_strings::static_u32string, boost::static_strings::static_wstring
 - Not Trivial Custom Classes
 
 ### Usage
@@ -243,6 +243,10 @@ Because of this behavior of minimal-serializer, serialized data by minimal-seria
 |Type|C++|C#|
 |:---|:---|:---|
 |Boolean|bool|bool|
+|8bit Signed Integer|int8_t|sbyte|
+|8bit Unsigned Integer|uint8_t|byte|
+|16bit Signed Integer|int16_t|short|
+|16bit Unsigned Integer|uint16_t|ushort|
 |32bit Signed Integer|int32_t|int|
 |32bit Unsigned Integer|uint32_t|uint|
 |64bit Signed Integer|int64_t|long|
@@ -250,10 +254,10 @@ Because of this behavior of minimal-serializer, serialized data by minimal-seria
 |32bit Floating Point Value|float|float|
 |64bit Floating Point Value|double|double|
 |Enum|enum, enum class|enum|
-|Static String|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)|x (Supported in Future)|
-|Static String Field|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20)|string with `[FixedLength]`|
-|Static Array|std::array, std::tuple, std::pair|x (Supported in Future)|
-|Static Array Field|std::array, std::tuple, std::pair|array with `[FixedLength]`|
+|String|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20), boost::static_strings::static_string, boost::static_strings::static_u8string (C++20)|x (Supported in Future)|
+|String Field|minimal_serializer::fixed_string, minimal_serializer::fixed_u8string (C++20), boost::static_strings::static_string, boost::static_strings::static_u8string (C++20)|string with `[FixedLength]`|
+|Array|std::array, std::tuple, std::pair|x (Supported in Future)|
+|Array Field|std::array, std::tuple, std::pair|array with `[FixedLength]`|
 |Class|Trivial Classes|Classes with `[Serializable][StructLayout(LayoutKind.Sequential)]`|
 |Struct|Trivial Struct|Struct with `[Serializable]`|
 
@@ -265,7 +269,7 @@ Because of this behavior of minimal-serializer, serialized data by minimal-seria
 |Platform Dependent Sized Integer|int, unsigned int, etc|nint, nuint|x|
 |Pointer|raw pointer, std:shared_ptr, etc|pointer|o|
 |Reference|Reference|-|o|
-|Dynamic String|std::string, raw string|string without `[FixedLength]`|x|
-|Dynamic Array|std::vector, std::list, etc|array without `[FixedLength]`|x|
+|String|raw string, std::string, std::u16string, std::u32string, std::wstring, boost::static_strings::static_u16string, boost::static_strings::static_u32string, boost::static_strings::static_wstring|string without `[FixedLength]`|x|
+|Array|std::vector, std::list, etc|array without `[FixedLength]`|x|
 |Language Unique Types|-|decimal|x|
 |Union|union|-|x|
