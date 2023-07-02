@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2019-2022 Cdec
+Copyright (c) 2019 Cdec
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -11,64 +11,75 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unordered_set>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/functional/hash.hpp>
 
 #include "minimal_serializer/fixed_string.hpp"
 
 using namespace std;
 using namespace minimal_serializer;
 
-// Test using string before C++17
-#ifndef __cpp_char8_t
-using string_t = std::string;
-template<std::size_t Length>
-using fixed_string_t = fixed_string<Length>;
-#else
-// Test using u8string in C++20
-using string_t = std::u8string;
+// System encoded strings
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996) // Avoid deprecation of fixed_string and static_string
+#endif
 template <std::size_t Length>
-using fixed_string_t = fixed_u8string<Length>;
+using fixed_string_se_t = fixed_string<Length>;
+using std_string_se_t = std::string;
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
-BOOST_AUTO_TEST_SUITE(fixed_string_test)
+// Standard strings before C++17
+#ifndef __cpp_char8_t
+template <std::size_t Length>
+using fixed_string_t = fixed_string<Length>;
+using std_string_t = std::string;
+#else
+// UTF-8 strings in C++20
+template<std::size_t Length>
+using fixed_string_t = fixed_u8string<Length>;
+using std_string_t = std::u8string;
+#endif
+
+BOOST_AUTO_TEST_SUITE(utf8_fixed_string_test)
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_alphabet) {
 		const auto test = u8"ABCXYZ";
 		// Use BOOST_CHECK instead of BOOST_CHECK_EQUAL because BOOST_CHECK does not support u8string due to std::ostream support.
-		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
+		BOOST_CHECK(std_string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_japanese) {
 		const auto test = u8"あいうえお蟹";
-		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
+		BOOST_CHECK(std_string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_c_str_construct_mixed) {
 		const auto test = u8"あいうABCえお蟹";
-		BOOST_CHECK(string_t(test) == fixed_string_t<32>(test).to_string());
+		BOOST_CHECK(std_string_t(test) == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_alphabet) {
-		const string_t test = u8"ABCXYZ";
+		const std_string_t test = u8"ABCXYZ";
 		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_japanese) {
-		const string_t test = u8"あいうえお蟹";
+		const std_string_t test = u8"あいうえお蟹";
 		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_string_construct_mixed) {
-		const string_t test = u8"あいうABCえお蟹";
+		const std_string_t test = u8"あいうABCえお蟹";
 		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_empty) {
-		const string_t test{};
+		const std_string_t test{};
 		BOOST_CHECK(test == fixed_string_t<32>(test).to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_bound_length_string) {
-		BOOST_CHECK(string_t(u8"あああああ") == fixed_string_t<15>(u8"あああああ").to_string());
+		BOOST_CHECK(std_string_t(u8"あああああ") == fixed_string_t<15>(u8"あああああ").to_string());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_construct_too_long_string) {
@@ -77,7 +88,7 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_copy_construct) {
-		const string_t test = u8"かきくけこ";
+		const std_string_t test = u8"かきくけこ";
 		const fixed_string_t<32> original(test);
 		const auto copied(original);
 		BOOST_CHECK(test == original.to_string());
@@ -85,7 +96,7 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	}
 
 	BOOST_AUTO_TEST_CASE(test_copy_operator) {
-		const string_t test = u8"かきくけこ";
+		const std_string_t test = u8"かきくけこ";
 		const fixed_string_t<32> original(test);
 		const fixed_string_t<32> copied = original;
 		BOOST_CHECK(test == original.to_string());
@@ -187,8 +198,12 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 	// boost::output_test_stream is not available due to https://stackoverflow.com/questions/3185380/boost-test-output-test-stream-fails-with-templated-output-operator
 	BOOST_AUTO_TEST_CASE(test_ostream) {
 		ostringstream ostream;
+#ifdef __cpp_char8_t
 		ostream << fixed_string_t<32>(u8"こんちは");
-		BOOST_CHECK_EQUAL("こんちは"s, ostream.str());
+#else
+		ostream << fixed_string_t<32>("こんちは");
+#endif
+	BOOST_CHECK_EQUAL("こんちは"s, ostream.str());
 	}
 
 	BOOST_AUTO_TEST_CASE(test_std_hash) {
@@ -209,5 +224,16 @@ BOOST_AUTO_TEST_SUITE(fixed_string_test)
 		BOOST_CHECK(set.find(fs(u8"い")) == set.end());
 	}
 
+
+BOOST_AUTO_TEST_SUITE_END()
+
+// Test only ostream operator because other operators are same as fixed_string_t
+BOOST_AUTO_TEST_SUITE(system_encoded_fixed_string_test)
+	// boost::output_test_stream is not available due to https://stackoverflow.com/questions/3185380/boost-test-output-test-stream-fails-with-templated-output-operator
+	BOOST_AUTO_TEST_CASE(test_ostream) {
+		ostringstream ostream;
+		ostream << fixed_string_se_t<32>("こんちは");
+		BOOST_CHECK_EQUAL("こんちは"s, ostream.str());
+	}
 
 BOOST_AUTO_TEST_SUITE_END()

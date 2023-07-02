@@ -189,14 +189,18 @@ using test_serializable_non_string_types = boost::mpl::list<
 >;
 #endif
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996) // Avoid deprecation of fixed_string and static_string
+#endif
 // String serializable types to test
 using test_serializable_string_types = boost::mpl::list<
 	fixed_string_t<8>,
 	boost_static_string_t<8>
 >;
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 // Tuple line serializable types to test
 using test_serializable_tuple_like_types = boost::mpl::list<

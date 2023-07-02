@@ -14,46 +14,68 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "minimal_serializer/string_utility.hpp"
 #include "minimal_serializer/fixed_string.hpp"
 
-#include "serialize_test_types.hpp"
-
 using namespace std;
 using namespace minimal_serializer;
 
 BOOST_AUTO_TEST_SUITE(string_utilities_test)
-	BOOST_AUTO_TEST_CASE(test_char_array) {
+	// Tests for system encoded strings
+	BOOST_AUTO_TEST_CASE(test_system_encoded_char_array) {
 		BOOST_CHECK_EQUAL("ABCXYZ", generate_string("ABCXYZ"));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_char_array_pointer) {
+	BOOST_AUTO_TEST_CASE(test_system_encoded_char_array_pointer) {
 		BOOST_CHECK_EQUAL("ABCXYZ", generate_string(&"ABCXYZ"[0]));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_string) {
-		BOOST_CHECK_EQUAL("ABCXYZ", generate_string("ABCXYZ"s));
+	BOOST_AUTO_TEST_CASE(test_system_encoded_string) {
+		BOOST_CHECK_EQUAL("ABCXYZ", generate_string(string("ABCXYZ")));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_fixed_string) {
-		BOOST_CHECK_EQUAL("うおo", generate_string(fixed_string_t<8>(u8"うおo")));
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996) // Avoid deprecation of fixed_string and static_string
+#endif
+	BOOST_AUTO_TEST_CASE(test_system_encoded_fixed_string) {
+		BOOST_CHECK_EQUAL("うおo", generate_string(fixed_string<8>("うおo")));
+	}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+	BOOST_AUTO_TEST_CASE(test_system_encoded_boost_static_string) {
+		BOOST_CHECK_EQUAL("うおo", generate_string(boost::static_strings::static_string<8>("うおo")));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_boost_static_string) {
-		BOOST_CHECK_EQUAL("うおo", generate_string(boost_static_string_t<8>(u8"うおo")));
+#ifdef __cpp_char8_t
+	// Tests for UTF-8 strings
+	BOOST_AUTO_TEST_CASE(test_utf8_char) {
+		BOOST_CHECK_EQUAL("a", generate_string(u8'a'));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_u8char_array) {
+	BOOST_AUTO_TEST_CASE(test_utf8_char_array) {
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(u8"あいうえお"));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_u8char_array_pointer) {
+	BOOST_AUTO_TEST_CASE(test_utf8_char_array_pointer) {
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(&u8"あいうえお"[0]));
 	}
 
-	BOOST_AUTO_TEST_CASE(test_u8string) {
-		BOOST_CHECK_EQUAL("あいうえお", generate_string(u8"あいうえお"s));
+	BOOST_AUTO_TEST_CASE(test_utf8_string) {
+		BOOST_CHECK_EQUAL("あいうえお", generate_string(u8string(u8"あいうえお")));
 	}
 
+	BOOST_AUTO_TEST_CASE(test_utf8_fixed_string) {
+		BOOST_CHECK_EQUAL("あいうえお", generate_string(fixed_u8string<16>(u8"あいうえお")));
+	}
+
+	BOOST_AUTO_TEST_CASE(test_utf8_boost_static_string) {
+		BOOST_CHECK_EQUAL("あいうえお", generate_string(boost::static_strings::static_u8string<16>(u8"あいうえお")));
+	}
+#endif
+
+	// Tests for not string types and concatenation
 	BOOST_AUTO_TEST_CASE(test_string_concatenation) {
-		BOOST_CHECK_EQUAL("ABCあいう", generate_string("ABC", u8"あいう"));
+		BOOST_CHECK_EQUAL("ABCあいう", generate_string("ABC", "あいう"));
 	}
 
 	BOOST_AUTO_TEST_CASE(test_byte_concatenation) {
@@ -112,6 +134,7 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 		}
 	}
 
+	// Tests for boundary parameters
 	BOOST_AUTO_TEST_CASE(test_empty_parameter) {
 		BOOST_CHECK_EQUAL("", generate_string());
 	}
