@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "minimal_serializer/string_utility.hpp"
 #include "minimal_serializer/fixed_string.hpp"
 
+
 using namespace std;
 using namespace minimal_serializer;
 
@@ -67,7 +68,8 @@ BOOST_AUTO_TEST_SUITE(string_utilities_test)
 	BOOST_AUTO_TEST_CASE(test_utf8_fixed_string) {
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(fixed_u8string<16>(u8"あいうえお")));
 	}
-
+#endif
+#ifdef BOOST_STATIC_STRING_CPP20
 	BOOST_AUTO_TEST_CASE(test_utf8_boost_static_string) {
 		BOOST_CHECK_EQUAL("あいうえお", generate_string(boost::static_strings::static_u8string<16>(u8"あいうえお")));
 	}

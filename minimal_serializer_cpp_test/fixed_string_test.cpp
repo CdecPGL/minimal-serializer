@@ -29,16 +29,16 @@ using std_string_se_t = std::string;
 #pragma warning(pop)
 #endif
 
-// Standard strings before C++17
-#ifndef __cpp_char8_t
-template <std::size_t Length>
-using fixed_string_t = fixed_string<Length>;
-using std_string_t = std::string;
-#else
-// UTF-8 strings in C++20
+#ifdef __cpp_char8_t
+// Standard strings in C++20
 template<std::size_t Length>
 using fixed_string_t = fixed_u8string<Length>;
 using std_string_t = std::u8string;
+#else
+// Standard strings before C++17
+template <std::size_t Length>
+using fixed_string_t = fixed_string<Length>;
+using std_string_t = std::string;
 #endif
 
 BOOST_AUTO_TEST_SUITE(utf8_fixed_string_test)

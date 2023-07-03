@@ -175,6 +175,17 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		BOOST_CHECK_EQUAL(16, size);
 	}
 
+// There are the environment that __cpp_char8_t is defined but the value of __cplusplus is not C++20 which leads boost::static_u8string not defined.
+// So disable tests of boost::static_u8string for the environment because boost::static_string cannot treat u8 string in such environment.
+#ifdef __cpp_char8_t
+#ifdef BOOST_STATIC_STRING_CPP20
+#define ENABLE_BOOST_STATIC_STRING_TEST
+#endif
+#else
+#define ENABLE_BOOST_STATIC_STRING_TEST
+#endif
+
+#ifdef ENABLE_BOOST_STATIC_STRING_TEST
 	// Tests for boost::static_string or boost:static_u8string
 	BOOST_AUTO_TEST_CASE(test_member_serialize_not_change_boost_static_string) {
 		const boost_static_string_t<16> expected = u8"おはよu";
@@ -223,5 +234,5 @@ BOOST_AUTO_TEST_SUITE(serialize_test)
 		// Use BOOST_CHECK instead of BOOST_CHECK_EQUAL because std::u8string does not support ostream.
 		BOOST_CHECK(expected.to_string() == std_string_t(actual.c_str()));
 	}
-
+#endif
 BOOST_AUTO_TEST_SUITE_END()

@@ -173,7 +173,7 @@ namespace minimal_serializer {
 			if constexpr (std::is_same_v<typename non_cv_ref_t::value_type, char>) {
 				oss << value;
 			}
-#ifdef __cpp_char8_t
+#ifdef BOOST_STATIC_STRING_CPP20
 			// boost::static_strings::static_u8string support
 			else if constexpr (std::is_same_v<typename non_cv_ref_t::value_type, char8_t>) {
 				oss << convert_utf8_to_system_encode(

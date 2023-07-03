@@ -17,20 +17,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "minimal_serializer/fixed_string.hpp"
 
-// Test using string before C++17
-#ifndef __cpp_char8_t
-template<std::size_t Length>
-using fixed_string_t = minimal_serializer::fixed_string<Length>;
-template <std::size_t Length>
-using boost_static_string_t = boost::static_strings::static_string<Length>;
-using std_string_t = std::string;
-#else
+#ifdef __cpp_char8_t
 // Test using u8string in C++20
 template <std::size_t Length>
 using fixed_string_t = minimal_serializer::fixed_u8string<Length>;
+using std_string_t = std::u8string; 
+#else
+// Test using string before C++17
+template<std::size_t Length>
+using fixed_string_t = minimal_serializer::fixed_string<Length>;
+using std_string_t = std::string;
+#endif
+
+#ifdef BOOST_STATIC_STRING_CPP20
 template <std::size_t Length>
 using boost_static_string_t = boost::static_strings::static_u8string<Length>;
-using std_string_t = std::u8string;
+#else
+template <std::size_t Length>
+using boost_static_string_t = boost::static_strings::static_string<Length>;
 #endif
 
 // 22 bytes

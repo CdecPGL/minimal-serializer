@@ -130,7 +130,7 @@ namespace minimal_serializer {
 
 	struct is_serializable_boost_static_string_impl final {
 		template <typename T>
-#if __cpp_char8_t
+#ifdef BOOST_STATIC_STRING_CPP20
 		[[deprecated("Use boost::static_strings::static_u8string instead.")]]
 #endif
 		static auto check(T&& x) -> std::enable_if_t<
@@ -138,7 +138,7 @@ namespace minimal_serializer {
 			std::true_type
 		>;
 
-#if __cpp_char8_t
+#ifdef BOOST_STATIC_STRING_CPP20
 		template <typename T>
 		static auto check(T&& x) -> std::enable_if_t<
 			std::is_same_v<T, boost::static_strings::static_u8string<T::static_capacity>>,
