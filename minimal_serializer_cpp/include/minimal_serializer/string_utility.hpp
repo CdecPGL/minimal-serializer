@@ -71,13 +71,18 @@ namespace minimal_serializer {
 			const auto error_code = GetLastError();
 			std::array<char, 1024> error_message{};
 			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, 0u, error_message.data(),
-							static_cast<DWORD>(error_message.size()), nullptr);
+				static_cast<DWORD>(error_message.size()), nullptr);
 			std::ostringstream oss;
 			oss << error_message.data();
 			return oss.str();
 		};
 
 		auto const w_str_size = MultiByteToWideChar(CP_UTF8, 0u, u8_str, -1, nullptr, 0u);
+		// return empty string immediately for empty string because WideCharToMultiByte occurs error for empty strnig. 
+		if (w_str_size == 0 || w_str_size == 1 && u8_str[0] == '\0') {
+			return "";
+		}
+
 		std::vector<wchar_t> w_str(w_str_size, L'\0');
 		if (MultiByteToWideChar(CP_UTF8, 0u, u8_str, -1, w_str.data(), static_cast<int>(w_str.size())) == 0) {
 			throw std::runtime_error(get_win32_error_message());
@@ -88,13 +93,13 @@ namespace minimal_serializer {
 		// Convert wide string (UTF-16) to system encode.
 		std::vector<char> sys_str(w_str.size() * sizeof(wchar_t) + 1, '\0');
 		if (WideCharToMultiByte(CP_ACP, 0u, w_str.data(), static_cast<int>(w_str.size()), sys_str.data(),
-								static_cast<int>(sys_str.size()), nullptr, nullptr) == 0) {
+			static_cast<int>(sys_str.size()), nullptr, nullptr) == 0) {
 			throw std::runtime_error(get_win32_error_message());
 		}
 
 		sys_str.resize(std::char_traits<char>::length(sys_str.data()));
 		sys_str.shrink_to_fit();
-		return {sys_str.begin(), sys_str.end()};
+		return { sys_str.begin(), sys_str.end() };
 #else
 		// In linux, default strings (char*) are treated as UTF-8, so conversion is not required.
 		// How about MacOS X ???
