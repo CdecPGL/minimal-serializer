@@ -1,6 +1,6 @@
 [![Release](https://img.shields.io/github/v/release/CdecPGL/minimal-serializer?include_prereleases&sort=semver)](https://github.com/CdecPGL/minimal-serializer/releases)
 [![License](https://img.shields.io/github/license/CdecPGL/minimal-serializer)](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE)
-[![CircleCI Buld and Test Status](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master.svg?style=shield)](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master)
+[![CircleCI Build and Test Status](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master.svg?style=shield)](https://circleci.com/gh/CdecPGL/minimal-serializer/tree/master)
 
 # minimal-serializer
 
@@ -13,7 +13,7 @@ A C++ and C# binary serializer which serializes data without any extra data.
 - Serialized size is always same and predictable if type is same
 - Header only in C++ version
 
-Comparision of binary serializers for C++ and C#.
+Comparison of binary serializers for C++ and C#.
 
 |Library|C++|C#|Minimal Size (No Metadata)|Portable|Supported Type|
 |:---|:---|:---|:---|:---|:---|
@@ -141,13 +141,13 @@ public class Main {
 
 ### C#
 
-- .NET FrameWork or .NET Core which is compatible with .NET Standard 2.0
+- .NET Framework or .NET Core which is compatible with .NET Standard 2.0
 
 ## Install
 
 ### C++
 
-This is header only library.
+This is a header only library.
 
 Copy `minimal_serializer_cpp/include` directory to your project.
 
@@ -168,7 +168,7 @@ Copy all files in `MinimalSerializerCSharp/Source` directory to your project.
 #### CMake
 
 1. Install a compiler which is compatible with C++17
-1. Install Boost Library 1.69 or higher (It is convenience to use vcpkg in Windows to install Boort Library)
+1. Install Boost Library 1.69 or higher (It is convenient to use vcpkg in Windows to install the Boost Library)
 1. Install CMake 3.8 or higher
 1. Move to the root directory of minimal-serializer
 1. `mkdir build`
@@ -206,9 +206,9 @@ You can create pull requests by below steps.
 
 ## License
 
-The codes in this repository are lisenced unfer the [the MIT License](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE).
+The code in this repository are licensed under the [MIT License](https://github.com/CdecPGL/minimal-serializer/blob/master/LICENSE).
 
-This repogitory includes following libraries from other repogitories. The licenses of these codes follows each repogitories.
+This repository includes following libraries from other repositories. The licenses of these repositories follow each respective repository:
 
 - [nameof C++](https://github.com/Neargye/nameof) ([The MIT License](https://github.com/Neargye/nameof/blob/master/LICENSE))
 - [cereal](https://github.com/USCiLab/cereal) ([The 3-Clause BSD License](https://github.com/USCiLab/cereal/blob/master/LICENSE))
