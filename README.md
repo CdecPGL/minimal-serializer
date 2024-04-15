@@ -24,7 +24,7 @@ Comparision of binary serializers for C++ and C#.
 
 ## Example
 
-See [Serializer Usage](documents/serializer.md) to know usage of minimal-serializer.
+See [Serializer Usage](documents/serializer.md) to know the usage of minimal-serializer.
 
 ### C++
 
