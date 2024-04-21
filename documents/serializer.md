@@ -150,12 +150,12 @@ minimal_serializer::fixed_string<16> ok_japanese = u8"こんにちは";
 minimal_serializer::fixed_string<16> ng_japanese = u8"おはようございます";
 ```
 
-### Character Endoding
+### Character Encoding
 
-This library uses UTF-8 as character encoding according to defact standard in Web.
+This library uses UTF-8 as the character encoding, adhering to the de facto standard on the web.
 
 In C++17, `minimal_serializer::fixed_string` which is similar to `std::string` is available as UTF-8 string type.
-However, the type does not guarantee that character encoding is UTF-8 because there are no character type which guarantees that character encoding is UTF-8 in C++17.
+However, the type does not guarantee that character encoding is UTF-8 because there is no character type which guarantees that character encoding is UTF-8 in C++17.
 Because of this reason, ***it is a part of your responsibilities to ensure the character encoding is UTF-8 by using `u8` string literal.***
 
 In C++20, `minimal_serializer::fixed_u8string` which is similar to `std::u8string` is available as UTF-8 string type.
@@ -180,8 +180,8 @@ Types whose size will be change dynamically or layout is not constant are not su
 
 - Custom Structs or Classes whose StructLayout is not LayoutKind.Sequential
 - Dynamic Containers: List, Dictionary, etc.
-- Raw array wichout FixedLength attribute
-- String wichout FixedLength attribute
+- Raw array without FixedLength attribute
+- String without FixedLength attribute
 
 ### Usage
 
@@ -217,7 +217,7 @@ There are two or three steps to make custom type serializable.
 1. Add `FixedLength` attribute to string and array members
 1. (If class) Add `[StructLayout(LayoutKind.Sequential)]` attribute
 
-### Character Endoding
+### Character Encoding
 
 This library uses UTF-8 as character encoding according to defact standard in Web.
 
